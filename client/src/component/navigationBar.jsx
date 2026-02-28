@@ -78,7 +78,7 @@ export default function NavigationBar() {
       </div>
 
       {menuOpen && (
-        <div className="md:hidden nav-blur bg-white/90 border-t border-stone-100 px-6 pb-4">
+        <div className="md:hidden nav-blur bg-white/100 border-t border-stone-100 px-6 pb-4 w-40  absolute right-2">
           {NAV_LINKS.map((link) => (
             <a
               key={link.label}
