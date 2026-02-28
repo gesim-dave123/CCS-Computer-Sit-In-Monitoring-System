@@ -1,4 +1,7 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
+
+
 import {
   MailIcon,
   LockIcon,
@@ -28,7 +31,6 @@ export default function LoginModal({ onClose, onSwitchToRegister }) {
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
-      onClick={onClose}
     >
       <div
         className="relative w-full max-w-md mx-4 bg-white rounded-2xl shadow-xl overflow-hidden"
@@ -109,19 +111,6 @@ export default function LoginModal({ onClose, onSwitchToRegister }) {
                 </div>
               </div>
 
-              {/* Remember */}
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setRemember((v) => !v)}
-                  className={`w-4 h-4 rounded flex items-center justify-center border-2 transition-all ${remember ? "bg-purple-700 border-purple-700" : "border-gray-300 bg-white"
-                    }`}
-                >
-                  {remember && <CheckIcon size={8} />}
-                </button>
-                <span className="text-xs text-gray-400">Remember me for 30 days</span>
-              </div>
-
               {/* Submit */}
               <button
                 type="submit"
@@ -147,13 +136,12 @@ export default function LoginModal({ onClose, onSwitchToRegister }) {
               {/* Switch to register */}
               <p className="text-center text-sm text-gray-400">
                 Don't have an account?{" "}
-                <button
-                  type="button"
-                  onClick={onSwitchToRegister}
+                <Link
+                  to= "/register"
                   className="text-amber-600 font-medium hover:text-amber-700 transition-colors"
                 >
                   Create one
-                </button>
+                </Link>
               </p>
             </form>
           )}
