@@ -30,13 +30,13 @@ export default function LandingPage() {
       <Features />
 
       {/* ── HOW IT WORKS ─────────────────────────────────── */}
-      <HowItWorks />
+      {/* <HowItWorks /> */}
       {/* ── ABOUT ───────────────────────────────────────── */}
-      <About />
+      {/* <About /> */}
 
 
       {/* ── FOOTER ───────────────────────────────────────── */}
-      <Footer />
+      {/* <Footer /> */}
     </div>
   );
 }
