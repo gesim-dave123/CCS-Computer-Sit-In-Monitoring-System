@@ -36,6 +36,11 @@ export const EyeOffIcon = () => (
   <Icon d="M3 3l14 14M10 4c5.5 0 9 6 9 6s-.9 1.7-2.4 3.2M6.4 6.4A8.7 8.7 0 001 10s3.5 6 9 6a8.7 8.7 0 004.6-1.4" />
 );
 
+export const YearLevelIcon = () => (
+  <Icon d="M12 2l9 4-9 4-9-4 9-4zm0 6v6m-6 2h12M6 18h2m2 0h2m2 0h2" />
+
+);
+
 export const CheckIcon = ({ color = "white", size = 10 }) => (
   <svg width={size} height={size} viewBox="0 0 12 12" fill="none">
     <path
