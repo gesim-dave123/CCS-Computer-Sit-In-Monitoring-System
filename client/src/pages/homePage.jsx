@@ -4,7 +4,7 @@ import csslogo from "../assets/image/ccslogo.png";
 
 export default function HomePage() {
   return (
-    <section className="hero-gradient relative min-h-screen flex flex-col items-center justify-center pt-20 pb-10 overflow-hidden">
+    <section id="home" className="hero-gradient relative min-h-screen flex flex-col items-center justify-center pt-20 pb-10 overflow-hidden">
       {/* Decorative orbs */}
       <div className="orb orb-purple" />
       <div className="orb orb-gold" />
@@ -16,11 +16,11 @@ export default function HomePage() {
         className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none select-none"
         style={{ width: 520, height: 520, opacity: 0.05, zIndex: 0 }}
       />
-
-      <div className="relative z-10 w-full max-w-7xl mx-auto px-6 flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
-        {/* LEFT: Text content */}
+      
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-6 flex flex-col lg:flex-row xl:flex-row items-center gap-12 lg:gap-16 ">
+     
         <div className="flex flex-col items-start text-left flex-1 min-w-0">
-          {/* Live badge */}
+      
           <div className="fade-up badge inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium mb-6">
             <span className="live-dot w-2 h-2 rounded-full bg-purple-700 inline-block" />
             CCS Computer Sit-In Monitoring System
