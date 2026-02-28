@@ -7,7 +7,7 @@ export default function Footer() {
                 <div className="flex items-center gap-3">
                     <img src={csslogo} alt="CCS Logo" className="w-8 h-8 opacity-80" />
                     <div>
-                        <p className="font-bold text-base" style={{ color: "#5b2d8e" }}>Computer Sit-In Monitoring System</p>
+                        <p className="font-bold text-base" style={{ color: "#5b2d8e" }}>Sit-In Monitoring System</p>
                         <p className="text-xs" style={{ color: "#9ca3af" }}>College of Computer Studies</p>
                     </div>
                 </div>
