@@ -1,8 +1,13 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
+import brainciruit from "../../assets/icons/braincircuit.png"
+import computer from "../../assets/icons/computer.png"
+
 import {
   MailIcon,
   LockIcon,
   UserIcon,
+  YearLevelIcon,
   IdIcon,
   EyeIcon,
   EyeOffIcon,
@@ -14,10 +19,13 @@ import {
 export default function RegisterModal({ onClose, onSwitchToLogin }) {
   const [step, setStep] = useState(1);
   const [role, setRole] = useState("student");
+  const [yearLevel, setyearLevel] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [middleName, setMiddleName] = useState("");
   const [idNumber, setIdNumber] = useState("");
   const [email, setEmail] = useState("");
+  const [address, setAddress] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [showPw, setShowPw] = useState(false);
@@ -39,9 +47,8 @@ export default function RegisterModal({ onClose, onSwitchToLogin }) {
   };
 
   const roles = [
-    { val: "student", label: "Student", emoji: "🎓" },
-    { val: "faculty", label: "Faculty", emoji: "👨‍🏫" },
-    { val: "admin", label: "Admin", emoji: "🛡️" },
+    { val: "BSIT", label: "BSIT", emoji: computer },
+    { val: "BSCS", label: "BSCS", emoji: brainciruit },
   ];
 
   const strengthColors = {
@@ -55,7 +62,7 @@ export default function RegisterModal({ onClose, onSwitchToLogin }) {
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
-      onClick={onClose}
+     
     >
       <div
         className="relative w-full max-w-md mx-4 bg-white rounded-2xl shadow-xl overflow-hidden"
@@ -87,12 +94,12 @@ export default function RegisterModal({ onClose, onSwitchToLogin }) {
               </div>
               <p className="text-xl font-semibold text-gray-900">Account created!</p>
               <p className="text-sm text-gray-400 mt-1 mb-6">Check your email to verify your account.</p>
-              <button
-                onClick={onSwitchToLogin}
+              <Link
+               to = "/login"
                 className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-800 to-purple-600 text-white text-sm font-semibold shadow-md shadow-purple-200 hover:shadow-lg transition-all"
               >
                 Go to Login
-              </button>
+              </Link>
             </div>
           ) : (
             <>
@@ -132,27 +139,7 @@ export default function RegisterModal({ onClose, onSwitchToLogin }) {
                   className="space-y-4"
                 >
                   {/* Role */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">I am a</label>
-                    <div className="grid grid-cols-3 gap-2">
-                      {roles.map((r) => (
-                        <button
-                          key={r.val}
-                          type="button"
-                          onClick={() => setRole(r.val)}
-                          className={`flex flex-col items-center gap-1 py-3 rounded-xl border-2 text-sm transition-all ${role === r.val
-                              ? "border-purple-600 bg-purple-50"
-                              : "border-gray-200 bg-gray-50 hover:border-gray-300"
-                            }`}
-                        >
-                          <span className="text-lg">{r.emoji}</span>
-                          <span className={`text-xs font-medium ${role === r.val ? "text-purple-700" : "text-gray-500"}`}>
-                            {r.label}
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+                  
 
                   {/* Name row */}
                   <div className="grid grid-cols-2 gap-3">
@@ -190,6 +177,24 @@ export default function RegisterModal({ onClose, onSwitchToLogin }) {
                     </div>
                   </div>
 
+                  {/* Middle name */}
+                   <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1.5">Middle name</label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                          <UserIcon />
+                        </span>
+                        <input
+                          type="text"
+                          required
+                          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-800 placeholder-gray-400 outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-100 transition-all"
+                          placeholder="Optional "
+                          value={middleName}
+                          onChange={(e) => setMiddleName(e.target.value)}
+                        />
+                      </div>
+                    </div>
+
                   {/* ID */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1.5">
@@ -201,13 +206,56 @@ export default function RegisterModal({ onClose, onSwitchToLogin }) {
                       </span>
                       <input
                         type="text"
-                        required
                         className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-800 placeholder-gray-400 outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-100 transition-all"
-                        placeholder={role === "student" ? "e.g. 2024-00001" : "e.g. FAC-0042"}
+                        placeholder= "23123456"
                         value={idNumber}
                         onChange={(e) => setIdNumber(e.target.value)}
                       />
                     </div>
+                  </div>
+
+                  {/* Course */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Course</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {roles.map((r) => (
+                        <button
+                          key={r.val}
+                          type="button"
+                          onClick={() => setRole(r.val)}
+                          className={`flex flex-col items-center gap-1 py-3 rounded-xl border-2 text-sm transition-all ${role === r.val
+                              ? "border-purple-600 bg-purple-50"
+                              : "border-gray-200 bg-gray-50 hover:border-gray-300"
+                            }`}
+                        >
+                         <img
+                            src={r.emoji} 
+                            alt={r.label}
+                            className="w-5 h-5 object-contain"
+                          />
+                          <span className={`text-xs font-medium ${role === r.val ? "text-purple-700" : "text-gray-500"}`}>
+                            {r.label}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1.5">Year Level</label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                          <YearLevelIcon />
+                        </span> 
+                        <input
+                          type="number"
+                          required
+                          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-800 placeholder-gray-400 outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-100 transition-all"
+                          placeholder="e.g 1"
+                          value={yearLevel}
+                          onChange={(e) => setyearLevel(e.target.value)}
+                        />
+                      </div>
+                    </div>
+
                   </div>
 
                   <button
@@ -239,6 +287,23 @@ export default function RegisterModal({ onClose, onSwitchToLogin }) {
                       />
                     </div>
                   </div>
+                  {/* Address */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Address</label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                        <MailIcon />
+                      </span>
+                      <input
+                        type="text"
+                        required
+                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-800 placeholder-gray-400 outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-100 transition-all"
+                        placeholder="e.g Buhisan ...."
+                        value={address}
+                        onChange={(e) => setAddress(e.target.value)}
+                      />
+                    </div>
+                  </div>
 
                   {/* Password */}
                   <div>
@@ -266,7 +331,7 @@ export default function RegisterModal({ onClose, onSwitchToLogin }) {
                     {password && (
                       <div className="mt-2 space-y-1">
                         <div className="flex gap-1">
-                          {[1, 2, 3, 4].map((i) => (
+                          {[1, 2, 3, 4].map((i) => ( 
                             <div
                               key={i}
                               className={`h-1 flex-1 rounded-full transition-all ${i <= strength.score
@@ -317,24 +382,7 @@ export default function RegisterModal({ onClose, onSwitchToLogin }) {
                       <p className="text-xs text-red-400 mt-1">Passwords don't match</p>
                     )}
                   </div>
-
-                  {/* Terms */}
-                  <div className="flex items-start gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setAgree((v) => !v)}
-                      className={`mt-0.5 w-4 h-4 rounded flex items-center justify-center border-2 transition-all flex-shrink-0 ${agree ? "bg-purple-700 border-purple-700" : "border-gray-300 bg-white"
-                        }`}
-                    >
-                      {agree && <CheckIcon size={8} />}
-                    </button>
-                    <span className="text-xs text-gray-400 leading-relaxed">
-                      I agree to the{" "}
-                      <a href="#" className="text-amber-600 hover:text-amber-700">Terms of Service</a>{" "}
-                      and{" "}
-                      <a href="#" className="text-amber-600 hover:text-amber-700">Privacy Policy</a>
-                    </span>
-                  </div>
+          
 
                   {/* Buttons */}
                   <div className="flex gap-3">
@@ -347,7 +395,7 @@ export default function RegisterModal({ onClose, onSwitchToLogin }) {
                     </button>
                     <button
                       type="submit"
-                      disabled={loading || !agree || !!passwordMismatch || !password || !confirm}
+                      disabled={loading ||  !!passwordMismatch || !password || !confirm}
                       className="flex-[2] py-3 rounded-xl bg-gradient-to-r from-amber-600 to-amber-500 text-white text-sm font-semibold shadow-md shadow-amber-100 hover:shadow-lg hover:shadow-amber-200 transition-all disabled:opacity-50"
                     >
                       {loading ? (
@@ -369,13 +417,12 @@ export default function RegisterModal({ onClose, onSwitchToLogin }) {
                 <div className="flex-1 h-px bg-gray-200" />
               </div>
               <p className="text-center text-sm text-gray-400 mt-3">
-                <button
-                  type="button"
-                  onClick={onSwitchToLogin}
+                <Link
+                  to="/login"
                   className="text-purple-700 font-medium hover:text-purple-800 transition-colors"
                 >
                   Sign in instead
-                </button>
+                </Link>
               </p>
             </>
           )}
