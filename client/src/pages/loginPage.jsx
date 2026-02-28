@@ -1,30 +1,28 @@
 import { useState } from "react";
 import LoginModal from "../component/modals/loginModal";
 import RegisterModal from "../component/modals/registerModal";
+import { useNavigate } from "react-router-dom";
+import csslogo from "../assets/image/ccslogo.png";
 
-export default function App() {
+export default function LoginPage() {
   const [modal, setModal] = useState("login");
+  const navigate = useNavigate();
 
   return (
     <>
-      {modal === "login" && (
+      <img
+            src={csslogo}
+            alt=""
+            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none select-none"
+            style={{ width: 1040, height: 1040, opacity: 0.4, zIndex: 0 }}
+          />
         <LoginModal
           onClose={() => {
             setModal(null);
-            window.location.href = "/";
+            navigate("/");
           }}
           onSwitchToRegister={() => setModal("register")}
         />
-      )}
-      {modal === "register" && (
-        <RegisterModal
-          onClose={() => {
-            setModal(null);
-            window.location.href = "/";
-          }}
-          onSwitchToLogin={() => setModal("login")}
-        />
-      )}
     </>
   );
 }
