@@ -19,7 +19,7 @@ import {
 export default function RegisterModal({ onClose, onSwitchToLogin }) {
   const [step, setStep] = useState(1);
   const [role, setRole] = useState("student");
-  const [yearLevel, setyearLevel] = useState("");
+  const [yearLevel, setYearLevel] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [middleName, setMiddleName] = useState("");
@@ -59,10 +59,18 @@ export default function RegisterModal({ onClose, onSwitchToLogin }) {
     "#E5D9F7": "bg-purple-100",
   };
 
+  const yearLevelOPtions = [
+    { level: "1st Year", value: "1st Year" },
+    { level: "2nd Year", value: "2nd Year" },
+    { level: "3rd Year", value: "3rd Year" },
+    { level: "4th Year", value: "4th Year" },
+    { level: "5th Year", value: "5th Year" }
+  ];
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
-     
+
     >
       <div
         className="relative w-full max-w-md mx-4 bg-white rounded-2xl shadow-xl overflow-hidden"
@@ -95,7 +103,7 @@ export default function RegisterModal({ onClose, onSwitchToLogin }) {
               <p className="text-xl font-semibold text-gray-900">Account created!</p>
               <p className="text-sm text-gray-400 mt-1 mb-6">Check your email to verify your account.</p>
               <Link
-               to = "/login"
+                to="/login"
                 className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-800 to-purple-600 text-white text-sm font-semibold shadow-md shadow-purple-200 hover:shadow-lg transition-all"
               >
                 Go to Login
@@ -110,10 +118,10 @@ export default function RegisterModal({ onClose, onSwitchToLogin }) {
                     <div className="flex items-center gap-2">
                       <div
                         className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all ${step > s
+                          ? "bg-purple-700 text-white"
+                          : step === s
                             ? "bg-purple-700 text-white"
-                            : step === s
-                              ? "bg-purple-700 text-white"
-                              : "bg-gray-100 text-gray-400"
+                            : "bg-gray-100 text-gray-400"
                           }`}
                       >
                         {step > s ? <CheckIcon size={10} /> : s}
@@ -139,7 +147,7 @@ export default function RegisterModal({ onClose, onSwitchToLogin }) {
                   className="space-y-4"
                 >
                   {/* Role */}
-                  
+
 
                   {/* Name row */}
                   <div className="grid grid-cols-2 gap-3">
@@ -178,22 +186,22 @@ export default function RegisterModal({ onClose, onSwitchToLogin }) {
                   </div>
 
                   {/* Middle name */}
-                   <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1.5">Middle name</label>
-                      <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                          <UserIcon />
-                        </span>
-                        <input
-                          type="text"
-                          required
-                          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-800 placeholder-gray-400 outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-100 transition-all"
-                          placeholder="Optional "
-                          value={middleName}
-                          onChange={(e) => setMiddleName(e.target.value)}
-                        />
-                      </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Middle name</label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                        <UserIcon />
+                      </span>
+                      <input
+                        type="text"
+                        required
+                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-800 placeholder-gray-400 outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-100 transition-all"
+                        placeholder="Optional "
+                        value={middleName}
+                        onChange={(e) => setMiddleName(e.target.value)}
+                      />
                     </div>
+                  </div>
 
                   {/* ID */}
                   <div>
@@ -207,7 +215,7 @@ export default function RegisterModal({ onClose, onSwitchToLogin }) {
                       <input
                         type="text"
                         className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-800 placeholder-gray-400 outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-100 transition-all"
-                        placeholder= "23123456"
+                        placeholder="23123456"
                         value={idNumber}
                         onChange={(e) => setIdNumber(e.target.value)}
                       />
@@ -224,12 +232,12 @@ export default function RegisterModal({ onClose, onSwitchToLogin }) {
                           type="button"
                           onClick={() => setRole(r.val)}
                           className={`flex flex-col items-center gap-1 py-3 rounded-xl border-2 text-sm transition-all ${role === r.val
-                              ? "border-purple-600 bg-purple-50"
-                              : "border-gray-200 bg-gray-50 hover:border-gray-300"
+                            ? "border-purple-600 bg-purple-50"
+                            : "border-gray-200 bg-gray-50 hover:border-gray-300"
                             }`}
                         >
-                         <img
-                            src={r.emoji} 
+                          <img
+                            src={r.emoji}
                             alt={r.label}
                             className="w-5 h-5 object-contain"
                           />
@@ -244,15 +252,17 @@ export default function RegisterModal({ onClose, onSwitchToLogin }) {
                       <div className="relative">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
                           <YearLevelIcon />
-                        </span> 
-                        <input
-                          type="number"
-                          required
-                          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-800 placeholder-gray-400 outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-100 transition-all"
-                          placeholder="e.g 1"
-                          value={yearLevel}
-                          onChange={(e) => setyearLevel(e.target.value)}
-                        />
+                        </span>
+                        <select className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 
+                                          bg-gray-50 text-sm text-gray-800 placeholder-gray-400 outline-none 
+                                          focus:border-purple-400 focus:ring-2 focus:ring-purple-100 transition-all" value={yearLevel} onChange={(e) => setYearLevel(e.target.value)}>
+                          <option value="" disabled>--- Select year level ---</option>
+                          {yearLevelOPtions.map((option) => (
+                            <option key={option.level} value={option.value}>
+                              {option.level}
+                            </option>
+                          ))}
+                        </select>
                       </div>
                     </div>
 
@@ -331,12 +341,12 @@ export default function RegisterModal({ onClose, onSwitchToLogin }) {
                     {password && (
                       <div className="mt-2 space-y-1">
                         <div className="flex gap-1">
-                          {[1, 2, 3, 4].map((i) => ( 
+                          {[1, 2, 3, 4].map((i) => (
                             <div
                               key={i}
                               className={`h-1 flex-1 rounded-full transition-all ${i <= strength.score
-                                  ? strengthColors[strength.color] || "bg-gray-200"
-                                  : "bg-gray-200"
+                                ? strengthColors[strength.color] || "bg-gray-200"
+                                : "bg-gray-200"
                                 }`}
                             />
                           ))}
@@ -357,10 +367,10 @@ export default function RegisterModal({ onClose, onSwitchToLogin }) {
                         type="password"
                         required
                         className={`w-full pl-10 pr-10 py-2.5 rounded-xl border bg-gray-50 text-sm text-gray-800 placeholder-gray-400 outline-none transition-all ${passwordMismatch
-                            ? "border-red-400 focus:ring-red-100 focus:border-red-400"
-                            : passwordsMatch
-                              ? "border-green-400 focus:ring-green-100 focus:border-green-400"
-                              : "border-gray-200 focus:ring-purple-100 focus:border-purple-400"
+                          ? "border-red-400 focus:ring-red-100 focus:border-red-400"
+                          : passwordsMatch
+                            ? "border-green-400 focus:ring-green-100 focus:border-green-400"
+                            : "border-gray-200 focus:ring-purple-100 focus:border-purple-400"
                           } focus:ring-2`}
                         placeholder="Re-enter password"
                         value={confirm}
@@ -382,7 +392,7 @@ export default function RegisterModal({ onClose, onSwitchToLogin }) {
                       <p className="text-xs text-red-400 mt-1">Passwords don't match</p>
                     )}
                   </div>
-          
+
 
                   {/* Buttons */}
                   <div className="flex gap-3">
@@ -395,7 +405,7 @@ export default function RegisterModal({ onClose, onSwitchToLogin }) {
                     </button>
                     <button
                       type="submit"
-                      disabled={loading ||  !!passwordMismatch || !password || !confirm}
+                      disabled={loading || !!passwordMismatch || !password || !confirm}
                       className="flex-[2] py-3 rounded-xl bg-gradient-to-r from-amber-600 to-amber-500 text-white text-sm font-semibold shadow-md shadow-amber-100 hover:shadow-lg hover:shadow-amber-200 transition-all disabled:opacity-50"
                     >
                       {loading ? (
