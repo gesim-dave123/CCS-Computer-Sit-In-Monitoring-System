@@ -32,18 +32,47 @@ export default function RegisterModal({ onClose, onSwitchToLogin }) {
   const [agree, setAgree] = useState(false);
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
+  const [error, setError] = useState("");
 
   const strength = getStrength(password);
   const passwordsMatch = confirm.length > 0 && password === confirm;
   const passwordMismatch = confirm.length > 0 && password !== confirm;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+
+    try {
+      const res = await fetch("http://localhost/CCS-Computer-Sit-In-Monitoring-System/server/src/users.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id_number:   idNumber,
+          first_name:  firstName,
+          middle_name: middleName || null,
+          last_name:   lastName,
+          course:      role,
+          year_level:  yearLevel,
+          email:       email,
+          address:     address,
+          password:    password,
+        }),
+      });
+
+      const json = await res.json();
+
+      if (!res.ok) {
+        setError(json.error || "Registration failed. Please try again.");
+        return;
+      }
+
       setDone(true);
-    }, 1700);
+    } catch (err) {
+      setError("Could not reach the server. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const roles = [
@@ -393,6 +422,13 @@ export default function RegisterModal({ onClose, onSwitchToLogin }) {
                     )}
                   </div>
 
+
+                  {/* Error banner */}
+                  {error && (
+                    <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-2.5 text-sm text-red-600">
+                      {error}
+                    </div>
+                  )}
 
                   {/* Buttons */}
                   <div className="flex gap-3">
