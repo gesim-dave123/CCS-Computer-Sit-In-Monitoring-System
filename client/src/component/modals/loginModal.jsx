@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
-
+import { Link, useNavigate } from "react-router-dom";
 
 import {
   MailIcon,
@@ -12,26 +11,59 @@ import {
 } from "../shared/Icons";
 
 export default function LoginModal({ onClose, onSwitchToRegister }) {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
   const [remember, setRemember] = useState(false);
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+    setError("");
+
+    try {
+      const res = await fetch(
+        "http://localhost/CCS-Computer-Sit-In-Monitoring-System/server/src/login.php",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email: email, password: password }),
+        },
+      );
+
+      const json = await res.json();
+      if (!res.ok) {
+        setError(json.error || "Unknown error");
+        setLoading(false);
+        return;
+      }
+
+      const role = json.user?.email === "admin@ccs.edu" ? "admin" : "student";
+      const userWithRole = { ...json.user, role };
+
+      localStorage.setItem("authToken", json.token);
+      localStorage.setItem("user", JSON.stringify(userWithRole));
+
       setDone(true);
-    }, 1600);
+      setTimeout(() => {
+        setLoading(false);
+        navigate(role === "admin" ? "/admin" : "/dashboard");
+      }, 800);
+    } catch (err) {
+      console.error("Login error:", err);
+      setError("Could not reach the server. Please try again.");
+      setLoading(false);
+    }
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
-    >
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
       <div
         className="relative w-full max-w-md mx-4 bg-white rounded-2xl shadow-xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
@@ -43,12 +75,19 @@ export default function LoginModal({ onClose, onSwitchToRegister }) {
             className="absolute top-5 right-5 w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
           >
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path d="M1 1l12 12M13 1L1 13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+              <path
+                d="M1 1l12 12M13 1L1 13"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+              />
             </svg>
           </button>
 
           <h2 className="text-2xl font-bold text-gray-900">Welcome back</h2>
-          <p className="text-sm text-gray-400 mt-1">Sign in to access your dashboard</p>
+          <p className="text-sm text-gray-400 mt-1">
+            Sign in to access your dashboard
+          </p>
         </div>
 
         {/* Body */}
@@ -57,17 +96,25 @@ export default function LoginModal({ onClose, onSwitchToRegister }) {
             <div className="text-center py-8">
               <div className="w-14 h-14 rounded-full bg-purple-50 border-2 border-purple-600 flex items-center justify-center mx-auto mb-4">
                 <svg viewBox="0 0 20 20" fill="#5B2D8E" width="28" height="28">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  <path
+                    fillRule="evenodd"
+                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                    clipRule="evenodd"
+                  />
                 </svg>
               </div>
               <p className="text-xl font-semibold text-gray-900">Signed in!</p>
-              <p className="text-sm text-gray-400 mt-1">Redirecting to your dashboard…</p>
+              <p className="text-sm text-gray-400 mt-1">
+                Redirecting to your dashboard…
+              </p>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-5">
               {/* Email */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Email address</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  Email address
+                </label>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
                     <MailIcon />
@@ -86,13 +133,25 @@ export default function LoginModal({ onClose, onSwitchToRegister }) {
               {/* Password */}
               <div>
                 <div className="flex justify-between items-center mb-1.5">
-                  <label className="text-sm font-medium text-gray-700">Password</label>
-                  <a href="#" className="text-xs text-amber-600 hover:text-amber-700 transition-colors">Forgot password?</a>
+                  <label className="text-sm font-medium text-gray-700">
+                    Password
+                  </label>
+                  <a
+                    href="#"
+                    className="text-xs text-amber-600 hover:text-amber-700 transition-colors"
+                  >
+                    Forgot password?
+                  </a>
                 </div>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
                     <LockIcon />
                   </span>
+                  {error && (
+                    <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-2.5 text-sm text-red-600 mt-3">
+                      {error}
+                    </div>
+                  )}
                   <input
                     type={showPw ? "text" : "password"}
                     required
@@ -137,7 +196,7 @@ export default function LoginModal({ onClose, onSwitchToRegister }) {
               <p className="text-center text-sm text-gray-400">
                 Don't have an account?{" "}
                 <Link
-                  to= "/register"
+                  to="/register"
                   className="text-amber-600 font-medium hover:text-amber-700 transition-colors"
                 >
                   Create one
