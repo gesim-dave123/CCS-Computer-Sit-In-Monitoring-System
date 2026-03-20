@@ -37,8 +37,33 @@ export const EyeOffIcon = () => (
 );
 
 export const YearLevelIcon = () => (
-  <Icon d="M12 2l9 4-9 4-9-4 9-4zm0 6v6m-6 2h12M6 18h2m2 0h2m2 0h2" />
-
+  <svg
+    width={16}
+    height={16}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.6"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+    <path d="M6 12v5c0 1.66 2.69 3 6 3s6-1.34 6-3v-5" />
+  </svg>
+);
+export const CourseIcon = () => (
+  <svg
+    width={16}
+    height={16}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.6"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M12 21V9m0 0a9 9 0 0 0-9-3v12a9 9 0 0 1 9 3zm0 0a9 9 0 0 1 9-3v12a9 9 0 0 0-9 3z" />
+  </svg>
 );
 
 export const CheckIcon = ({ color = "white", size = 10 }) => (
