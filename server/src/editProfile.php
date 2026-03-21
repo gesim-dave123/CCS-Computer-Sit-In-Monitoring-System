@@ -46,12 +46,19 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 	exit();
 }
 
-$data = json_decode(file_get_contents("php://input"), true);
+$contentType = $_SERVER['CONTENT_TYPE'] ?? '';
+$isMultipart = stripos($contentType, 'multipart/form-data') !== false;
 
-if (!is_array($data)) {
-	http_response_code(400);
-	echo json_encode(["error" => "Invalid JSON payload."]);
-	exit();
+if ($isMultipart) {
+	$data = $_POST;
+} else {
+	$data = json_decode(file_get_contents("php://input"), true);
+
+	if (!is_array($data)) {
+		http_response_code(400);
+		echo json_encode(["error" => "Invalid JSON payload."]);
+		exit();
+	}
 }
 
 // Match keys sent by frontend dashboard form.
@@ -62,6 +69,69 @@ $email = trim($data['email'] ?? '');
 $course = trim($data['course'] ?? '');
 $address = trim($data['address'] ?? '');
 $yearLevel = trim($data['yearLevel'] ?? '');
+
+$uploadedImageUrl = null;
+
+if (isset($_FILES['profilePhoto']) && $_FILES['profilePhoto']['error'] !== UPLOAD_ERR_NO_FILE) {
+	$file = $_FILES['profilePhoto'];
+
+	if ($file['error'] !== UPLOAD_ERR_OK) {
+		http_response_code(400);
+		echo json_encode(["error" => "Failed to upload profile image."]);
+		exit();
+	}
+
+	$maxSize = 5 * 1024 * 1024; // 5MB
+	if (($file['size'] ?? 0) > $maxSize) {
+		http_response_code(422);
+		echo json_encode(["error" => "Profile image must be 5MB or smaller."]);
+		exit();
+	}
+
+	$finfo = finfo_open(FILEINFO_MIME_TYPE);
+	$mimeType = finfo_file($finfo, $file['tmp_name']);
+	finfo_close($finfo);
+
+	$allowedTypes = [
+		'image/jpeg' => 'jpg',
+		'image/png' => 'png',
+		'image/webp' => 'webp',
+	];
+
+	if (!isset($allowedTypes[$mimeType])) {
+		http_response_code(422);
+		echo json_encode(["error" => "Only JPG, PNG, or WEBP images are allowed."]);
+		exit();
+	}
+
+	$uploadDir = realpath(__DIR__ . '/../public');
+	if ($uploadDir === false) {
+		http_response_code(500);
+		echo json_encode(["error" => "Upload directory not found."]);
+		exit();
+	}
+
+	$profileDir = $uploadDir . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'profile';
+	if (!is_dir($profileDir) && !mkdir($profileDir, 0777, true)) {
+		http_response_code(500);
+		echo json_encode(["error" => "Failed to create upload directory."]);
+		exit();
+	}
+
+	$ext = $allowedTypes[$mimeType];
+	$fileName = 'profile_' . time() . '_' . bin2hex(random_bytes(5)) . '.' . $ext;
+	$targetPath = $profileDir . DIRECTORY_SEPARATOR . $fileName;
+
+	if (!move_uploaded_file($file['tmp_name'], $targetPath)) {
+		http_response_code(500);
+		echo json_encode(["error" => "Failed to save profile image."]);
+		exit();
+	}
+
+	$scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+	$host = $_SERVER['HTTP_HOST'] ?? 'localhost:8080';
+	$uploadedImageUrl = $scheme . '://' . $host . '/CCS-Computer-Sit-In-Monitoring-System/server/public/uploads/profile/' . $fileName;
+}
 
 // Optional lookup key if frontend later sends currentEmail for email-change support.
 $currentEmail = trim($data['currentEmail'] ?? $email);
@@ -106,19 +176,16 @@ try {
 		}
 	}
 
-	$updateStmt = $pdo->prepare(
-		"UPDATE users
+	$updateSql = "UPDATE users
 		 SET first_name = ?,
 			 middle_name = ?,
 			 last_name = ?,
 			 course = ?,
 			 year_level = ?,
 			 email = ?,
-			 address = ?
-		 WHERE email = ?"
-	);
+			 address = ?";
 
-	$updateStmt->execute([
+	$updateParams = [
 		$firstName,
 		$middleName,
 		$lastName,
@@ -126,11 +193,23 @@ try {
 		$yearLevel,
 		$email,
 		$address,
-		$currentEmail,
-	]);
+	];
+
+	if ($uploadedImageUrl !== null) {
+		$updateSql .= ",
+			 profilePicture = ?";
+		$updateParams[] = $uploadedImageUrl;
+	}
+
+	$updateSql .= "
+		 WHERE email = ?";
+	$updateParams[] = $currentEmail;
+
+	$updateStmt = $pdo->prepare($updateSql);
+	$updateStmt->execute($updateParams);
 
 	$userStmt = $pdo->prepare(
-		"SELECT id_number, first_name, middle_name, last_name, course, year_level, email, address, role
+		"SELECT id_number, first_name, middle_name, last_name, course, year_level, email, address, role, profilePicture
 		 FROM users
 		 WHERE email = ?
 		 LIMIT 1"
