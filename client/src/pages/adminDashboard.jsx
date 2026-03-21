@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Navigate } from "react-router-dom";
 import AdminNavigationBar from "../component/adminNavigationBar";
+import { Bell, Users, Monitor, BarChart3, Megaphone, Calendar } from "lucide-react";
 
 function getArcPath(value, startAngle, radius = 16) {
   const endAngle = startAngle + (value / 100) * 360;
@@ -47,9 +48,9 @@ export default function AdminDashboard() {
     currentSitIns: 43,
     totalSitIns: 8600,
     purposes: [
-      { label: "Study", value: 40, color: "#6366f1" },
-      { label: "Project", value: 25, color: "#f59e0b" },
-      { label: "Exam prep", value: 20, color: "#10b981" },
+      { label: "C#", value: 40, color: "#6366f1" },
+      { label: "JavaScript", value: 25, color: "#f59e0b" },
+      { label: "Python", value: 20, color: "#10b981" },
       { label: "Other", value: 15, color: "#ef4444" },
     ],
   });
@@ -78,101 +79,131 @@ export default function AdminDashboard() {
   });
 
   return (
-    <main className="min-h-screen bg-slate-50 text-slate-800 p-6">
+    <main className="min-h-screen bg-slate-50 text-slate-800 p-4 sm:p-6">
       <AdminNavigationBar />
-      <div className="max-w-7xl mx-auto space-y-6 mt-25">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white shadow-md rounded-2xl p-6">
-            <h2 className="text-xl font-semibold mb-4">Statistics</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-              <div className="p-3 bg-slate-100 rounded-xl">
-                <p className="text-xs uppercase text-slate-500">
-                  Registered Students
-                </p>
-                <p className="text-2xl font-bold">{stats.registeredStudents}</p>
-              </div>
-              <div className="p-3 bg-slate-100 rounded-xl">
-                <p className="text-xs uppercase text-slate-500">
-                  Current Sit-Ins
-                </p>
-                <p className="text-2xl font-bold">{stats.currentSitIns}</p>
-              </div>
-              <div className="p-3 bg-slate-100 rounded-xl">
-                <p className="text-xs uppercase text-slate-500">
-                  Total Sit-Ins
-                </p>
-                <p className="text-2xl font-bold">{stats.totalSitIns}</p>
-              </div>
+      <div className="max-w-7xl mx-auto mt-24 space-y-6">
+        <section className="rounded-2xl bg-gradient-to-r from-purple-800 to-purple-700 text-white p-6 sm:p-8 shadow-lg">
+          <p className="text-purple-100 text-sm">Admin Dashboard</p>
+          <h1 className="text-2xl sm:text-3xl font-bold mt-1">Operations Overview</h1>
+          <p className="text-purple-100 mt-2 text-sm sm:text-base">
+            Monitor student activity, track sit-in trends, and publish announcements.
+          </p>
+        </section>
+
+        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="bg-white border border-purple-100 rounded-xl p-4 shadow-sm">
+            <div className="flex items-center justify-between">
+              <p className="text-xs uppercase tracking-wide text-slate-500">Registered Students</p>
+              <Users className="w-4 h-4 text-purple-600" />
             </div>
-            <div className="flex items-center gap-6">
-              <svg
-                width="200"
-                height="200"
-                viewBox="0 0 32 32"
-                className="block"
-              >
-                {pieSlices.map((slice, idx) => (
-                  <path key={slice.label} d={slice.path} fill={slice.color} />
-                ))}
-              </svg>
-              <div className="flex-1">
+            <p className="text-2xl font-bold text-slate-900 mt-2">{stats.registeredStudents}</p>
+          </div>
+
+          <div className="bg-white border border-purple-100 rounded-xl p-4 shadow-sm">
+            <div className="flex items-center justify-between">
+              <p className="text-xs uppercase tracking-wide text-slate-500">Current Sit-Ins</p>
+              <Monitor className="w-4 h-4 text-purple-600" />
+            </div>
+            <p className="text-2xl font-bold text-slate-900 mt-2">{stats.currentSitIns}</p>
+          </div>
+
+          <div className="bg-white border border-purple-100 rounded-xl p-4 shadow-sm">
+            <div className="flex items-center justify-between">
+              <p className="text-xs uppercase tracking-wide text-slate-500">Total Sit-Ins</p>
+              <BarChart3 className="w-4 h-4 text-purple-600" />
+            </div>
+            <p className="text-2xl font-bold text-slate-900 mt-2">{stats.totalSitIns}</p>
+          </div>
+
+          <div className="bg-white border border-purple-100 rounded-xl p-4 shadow-sm">
+            <div className="flex items-center justify-between">
+              <p className="text-xs uppercase tracking-wide text-slate-500">Announcements</p>
+              <Bell className="w-4 h-4 text-purple-600" />
+            </div>
+            <p className="text-2xl font-bold text-slate-900 mt-2">{announcements.length}</p>
+          </div>
+        </section>
+
+        <section className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div className="lg:col-span-5 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div className="px-5 py-4 border-b border-slate-200 flex items-center gap-2">
+              <BarChart3 className="w-5 h-5 text-purple-600" />
+              <h2 className="text-lg font-bold text-slate-900">Purpose Distribution</h2>
+            </div>
+
+            <div className="p-5 flex flex-col sm:flex-row items-center gap-6">
+              <div className="relative">
+                <svg width="210" height="210" viewBox="0 0 32 32" className="block drop-shadow-sm">
+                  {pieSlices.map((slice) => (
+                    <path key={slice.label} d={slice.path} fill={slice.color} />
+                  ))}
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className="w-20 h-20 rounded-full bg-white border border-slate-200" />
+                </div>
+              </div>
+
+              <div className="w-full space-y-2">
                 {stats.purposes.map((purpose) => (
-                  <div
-                    key={purpose.label}
-                    className="flex items-center gap-2 mb-2"
-                  >
-                    <span
-                      className="w-3 h-3 rounded-full"
-                      style={{ backgroundColor: purpose.color }}
-                    />
-                    <span className="font-medium">{purpose.label}:</span>
-                    <span>{purpose.value}%</span>
+                  <div key={purpose.label} className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2">
+                    <div className="flex items-center gap-2">
+                      <span className="w-3 h-3 rounded-full" style={{ backgroundColor: purpose.color }} />
+                      <span className="text-sm font-medium text-slate-700">{purpose.label}</span>
+                    </div>
+                    <span className="text-sm font-bold text-slate-900">{purpose.value}%</span>
                   </div>
                 ))}
               </div>
             </div>
           </div>
 
-          <div className="bg-white shadow-md rounded-2xl p-6">
-            <h2 className="text-xl font-semibold mb-4">Announcements</h2>
-            <div className="mb-4 space-y-2">
-              <input
-                type="text"
-                value={newAnnouncementTitle}
-                onChange={(e) => setNewAnnouncementTitle(e.target.value)}
-                placeholder="Title"
-                className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400"
-              />
-              <textarea
-                rows={3}
-                value={newAnnouncementContent}
-                onChange={(e) => setNewAnnouncementContent(e.target.value)}
-                placeholder="Announcement content"
-                className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400"
-              />
-              <button
-                onClick={addAnnouncement}
-                className="px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700"
-              >
-                Create Announcement
-              </button>
+          <div className="lg:col-span-7 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div className="px-5 py-4 border-b border-slate-200 flex items-center gap-2">
+              <Megaphone className="w-5 h-5 text-purple-600" />
+              <h2 className="text-lg font-bold text-slate-900">Manage Announcements</h2>
             </div>
-            <div className="space-y-3">
-              {announcements.map((item) => (
-                <div
-                  key={item.id}
-                  className="border border-slate-200 rounded-lg p-3"
+
+            <div className="p-5 space-y-4">
+              <div className="grid grid-cols-1 gap-3">
+                <input
+                  type="text"
+                  value={newAnnouncementTitle}
+                  onChange={(e) => setNewAnnouncementTitle(e.target.value)}
+                  placeholder="Announcement title"
+                  className="w-full border border-slate-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-purple-300"
+                />
+                <textarea
+                  rows={3}
+                  value={newAnnouncementContent}
+                  onChange={(e) => setNewAnnouncementContent(e.target.value)}
+                  placeholder="Write announcement details"
+                  className="w-full border border-slate-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-purple-300"
+                />
+                <button
+                  onClick={addAnnouncement}
+                  className="w-fit px-4 py-2 rounded-lg bg-purple-600 text-white hover:bg-purple-700"
                 >
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-semibold">{item.title}</h3>
-                    <span className="text-xs text-slate-500">{item.date}</span>
-                  </div>
-                  <p className="text-sm mt-1 text-slate-700">{item.content}</p>
-                </div>
-              ))}
+                  Create Announcement
+                </button>
+              </div>
+
+              <div className="space-y-3 max-h-[340px] overflow-y-auto pr-1">
+                {announcements.map((item) => (
+                  <article key={item.id} className="border border-slate-200 rounded-xl p-4 bg-slate-50/60">
+                    <div className="flex items-start justify-between gap-3">
+                      <h3 className="font-semibold text-slate-900">{item.title}</h3>
+                      <span className="inline-flex items-center gap-1 text-xs text-slate-500 whitespace-nowrap">
+                        <Calendar className="w-3 h-3" />
+                        {item.date}
+                      </span>
+                    </div>
+                    <p className="text-sm mt-2 text-slate-700 leading-relaxed">{item.content}</p>
+                  </article>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
+        </section>
       </div>
     </main>
   );
