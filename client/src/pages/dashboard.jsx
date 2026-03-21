@@ -15,6 +15,7 @@ import {
   X,
   AlertCircle,
   Clock,
+  Camera,
 } from "lucide-react";
 
 export default function DashboardPage() {
@@ -33,6 +34,8 @@ export default function DashboardPage() {
   const [editAddress, setAddress] = useState("");
   const [editCourse, setCourse] = useState("");
   const [editYearLevel, setYearLevel] = useState("");
+  const [editPhotoFile, setEditPhotoFile] = useState(null);
+  const [editPhotoPreview, setEditPhotoPreview] = useState(catUser);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -55,14 +58,42 @@ export default function DashboardPage() {
     setAddress(profile?.address || "");
     setCourse(profile?.course || "");
     setYearLevel(profile?.year_level || "");
+    setEditPhotoFile(null);
+    setEditPhotoPreview(profile?.profilePicture || profile?.profile_picture || catUser);
     setError("");
     setEditModalOpen(true);
+  };
+
+  const handlePhotoChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+    if (!allowedTypes.includes(file.type)) {
+      setError("Only JPG, PNG, or WEBP images are allowed.");
+      return;
+    }
+
+    const maxBytes = 5 * 1024 * 1024;
+    if (file.size > maxBytes) {
+      setError("Image is too large. Maximum size is 5MB.");
+      return;
+    }
+
+    setEditPhotoFile(file);
+    setError("");
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setEditPhotoPreview(reader.result);
+    };
+    reader.readAsDataURL(file);
   };
 
   const logout = () => {
     localStorage.removeItem("authToken");
     localStorage.removeItem("user");
-    navigate("/login");
+    navigate("/login", { replace: true });
   };
 
   const announcements = [
@@ -104,6 +135,16 @@ export default function DashboardPage() {
     { icon: Clock, text: "Surfing the internet is allowed only with the permission of the instructor. Downloading and installing of software are strictly prohibited" },
   ];
 
+  const defaultSessionAllocation = 30;
+  const parsedRemainingSessions = Number(profile?.remaining_sessions);
+  const safeRemainingSessions = Number.isFinite(parsedRemainingSessions)
+    ? Math.max(0, parsedRemainingSessions)
+    : defaultSessionAllocation;
+  const parsedTotalRecords = Number(profile?.total_sit_in_records);
+  const totalSitInRecords = Number.isFinite(parsedTotalRecords)
+    ? Math.max(0, parsedTotalRecords)
+    : Math.max(0, defaultSessionAllocation - safeRemainingSessions);
+
   const infoFields = [
     {
       label: "Full Name",
@@ -114,7 +155,7 @@ export default function DashboardPage() {
     { label: "Year Level", value: profile?.year_level, icon: Calendar },
     { label: "Email", value: profile?.email, icon: Mail },
     { label: "Address", value: profile?.address, icon: MapPin },
-    { label: "Session", value: "67", icon: Briefcase },
+    { label: "Remaining Sessions", value: safeRemainingSessions, icon: Briefcase },
   ];
 
   const toggleAnnouncement = (id) => {
@@ -136,21 +177,25 @@ export default function DashboardPage() {
 
     setLoading(true);
     try {
+      const formData = new FormData();
+      formData.append("firstName", editFirstName);
+      formData.append("lastName", editLastName);
+      formData.append("MiddleName", editMiddleName || "");
+      formData.append("email", editEmail);
+      formData.append("currentEmail", profile?.email || editEmail);
+      formData.append("course", editCourse);
+      formData.append("address", editAddress);
+      formData.append("yearLevel", editYearLevel);
+
+      if (editPhotoFile) {
+        formData.append("profilePhoto", editPhotoFile);
+      }
+
       const res = await fetch(
         "http://localhost:8080/CCS-Computer-Sit-In-Monitoring-System/server/src/editProfile.php",
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            firstName: editFirstName,
-            lastName: editLastName,
-            MiddleName: editMiddleName || null,
-            email: editEmail,
-            currentEmail: profile?.email || editEmail,
-            course: editCourse,
-            address: editAddress,
-            yearLevel: editYearLevel,
-          }),
+          body: formData,
         },
       );
 
@@ -164,6 +209,7 @@ export default function DashboardPage() {
         const mergedUser = { ...profile, ...json.user };
         setProfile(mergedUser);
         localStorage.setItem("user", JSON.stringify(mergedUser));
+        setEditPhotoFile(null);
       }
       setError("");
       setEditModalOpen(false);
@@ -180,7 +226,7 @@ export default function DashboardPage() {
 
       {isEditModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-xl bg-white rounded-2xl shadow-xl overflow-hidden">
+          <div className="w-full max-w-3xl bg-white rounded-2xl shadow-xl overflow-hidden">
             <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
               <h2 className="text-xl font-bold text-slate-900">Edit Profile</h2>
               <button
@@ -190,61 +236,91 @@ export default function DashboardPage() {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="px-6 py-4 space-y-3">
+            <div className="px-6 py-5 space-y-4">
               {error && <p className="text-sm text-red-600">{error}</p>}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <input
-                  type="text"
-                  value={editFirstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  placeholder="First Name"
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-purple-300 focus:outline-none"
-                />
-                <input
-                  type="text"
-                  value={editMiddleName}
-                  onChange={(e) => setMiddleName(e.target.value)}
-                  placeholder="Middle Name"
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-purple-300 focus:outline-none"
-                />
-                <input
-                  type="text"
-                  value={editLastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  placeholder="Last Name"
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-purple-300 focus:outline-none"
-                />
-                <input
-                  type="text"
-                  value={editCourse}
-                  onChange={(e) => setCourse(e.target.value)}
-                  placeholder="Course"
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-purple-300 focus:outline-none"
-                />
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div className="md:col-span-1">
+                  <div className="rounded-xl border border-slate-200 p-4 bg-slate-50">
+                    <p className="text-sm font-semibold text-slate-700 mb-3">Profile Photo</p>
+                    <div className="flex flex-col items-center gap-3">
+                      <img
+                        src={editPhotoPreview || catUser}
+                        alt="Profile preview"
+                        className="w-28 h-28 rounded-2xl object-cover border-4 border-white shadow"
+                      />
+                      <label className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-purple-600 text-white text-sm font-medium cursor-pointer hover:bg-purple-700">
+                        <Camera className="w-4 h-4" />
+                        Upload Photo
+                        <input
+                          type="file"
+                          accept="image/png,image/jpeg,image/webp"
+                          className="hidden"
+                          onChange={handlePhotoChange}
+                        />
+                      </label>
+                      <p className="text-xs text-slate-500 text-center">
+                        JPG, PNG, WEBP only (max 5MB)
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="md:col-span-2 space-y-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <input
+                      type="text"
+                      value={editFirstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      placeholder="First Name"
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-purple-300 focus:outline-none"
+                    />
+                    <input
+                      type="text"
+                      value={editMiddleName}
+                      onChange={(e) => setMiddleName(e.target.value)}
+                      placeholder="Middle Name"
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-purple-300 focus:outline-none"
+                    />
+                    <input
+                      type="text"
+                      value={editLastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      placeholder="Last Name"
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-purple-300 focus:outline-none"
+                    />
+                    <input
+                      type="text"
+                      value={editCourse}
+                      onChange={(e) => setCourse(e.target.value)}
+                      placeholder="Course"
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-purple-300 focus:outline-none"
+                    />
+                    <input
+                      type="text"
+                      value={editYearLevel}
+                      onChange={(e) => setYearLevel(e.target.value)}
+                      placeholder="Year Level"
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-purple-300 focus:outline-none"
+                    />
+                    <input
+                      type="email"
+                      value={editEmail}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="Email"
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-purple-300 focus:outline-none"
+                    />
+                  </div>
+
+                  <textarea
+                    value={editAddress}
+                    onChange={(e) => setAddress(e.target.value)}
+                    placeholder="Address"
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-purple-300 focus:outline-none"
+                    rows={4}
+                  />
+                </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <input
-                  type="text"
-                  value={editYearLevel}
-                  onChange={(e) => setYearLevel(e.target.value)}
-                  placeholder="Year Level"
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-purple-300 focus:outline-none"
-                />
-                <input
-                  type="email"
-                  value={editEmail}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Email"
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-purple-300 focus:outline-none"
-                />
-              </div>
-              <textarea
-                value={editAddress}
-                onChange={(e) => setAddress(e.target.value)}
-                placeholder="Address"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-purple-300 focus:outline-none"
-                rows={3}
-              />
             </div>
             <div className="px-6 py-4 border-t border-slate-200 flex justify-end gap-2">
               <button
@@ -266,31 +342,23 @@ export default function DashboardPage() {
       )}
 
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-10 space-y-6">
-        <div className="rounded-2xl bg-gradient-to-r from-purple-800 to-purple-700 text-white p-6 sm:p-8 shadow-lg">
-          <p className="text-purple-100 text-sm">Student Dashboard</p>
-          <h1 className="mt-1 text-2xl sm:text-3xl font-bold tracking-tight">
-            Welcome back, {profile?.first_name || "Student"}
-          </h1>
-          <p className="mt-2 text-purple-100 text-sm sm:text-base">
-            View announcements, review lab rules, and keep your profile up to date.
-          </p>
-        </div>
+      
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <div className="bg-white rounded-xl border border-purple-100 p-4 shadow-sm">
-            <p className="text-xs uppercase tracking-wide text-slate-500">Sessions</p>
-            <p className="mt-1 text-2xl font-bold text-slate-900">67</p>
+            <p className="text-xs uppercase tracking-wide text-slate-500">Total Sit-In Records</p>
+            <p className="mt-1 text-2xl font-bold text-slate-900">{totalSitInRecords}</p>
             <p className="text-sm text-purple-700">Total sit-in records</p>
+          </div>
+          <div className="bg-white rounded-xl border border-purple-100 p-4 shadow-sm">
+            <p className="text-xs uppercase tracking-wide text-slate-500">Remaining Sessions</p>
+            <p className="mt-1 text-2xl font-bold text-slate-900">{safeRemainingSessions}</p>
+            <p className="text-sm text-purple-700">Sessions left this term</p>
           </div>
           <div className="bg-white rounded-xl border border-purple-100 p-4 shadow-sm">
             <p className="text-xs uppercase tracking-wide text-slate-500">Announcements</p>
             <p className="mt-1 text-2xl font-bold text-slate-900">{visibleAnnouncements.length}</p>
             <p className="text-sm text-purple-700">Unread updates</p>
-          </div>
-          <div className="bg-white rounded-xl border border-purple-100 p-4 shadow-sm">
-            <p className="text-xs uppercase tracking-wide text-slate-500">Rules</p>
-            <p className="mt-1 text-2xl font-bold text-slate-900">{rules.length}</p>
-            <p className="text-sm text-purple-700">Lab guidelines</p>
           </div>
         </div>
 
@@ -300,7 +368,7 @@ export default function DashboardPage() {
               <div className="h-20 bg-gradient-to-r from-purple-800 to-purple-700" />
               <div className="px-6 pb-6 -mt-10">
                 <img
-                  src={profile?.profile_picture || catUser}
+                  src={profile?.profilePicture || profile?.profile_picture || catUser}
                   onError={(e) => {
                     e.currentTarget.src = catUser;
                   }}
