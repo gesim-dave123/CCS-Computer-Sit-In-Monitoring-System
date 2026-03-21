@@ -12,6 +12,9 @@ const NAV_LINKS = [
   { label: "Feedback Reports", link: "#features" },
   { label: "Reservations", link: "#features" },
 ];
+
+
+
 export default function NavigationBar({ onEditProfile }) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -23,6 +26,13 @@ export default function NavigationBar({ onEditProfile }) {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const logout = () => {
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("user");
+    navigate("/login");
+  };
+
 
   return (
     <nav
@@ -65,7 +75,7 @@ export default function NavigationBar({ onEditProfile }) {
           <div className="hidden md:flex items-center gap-3">
             <button
               className="btn-primary text-white text-sm px-8 py-2 rounded-full"
-              onClick={() => navigate("/login")}
+              onClick={() => logout()}
             >
               Logout
             </button>
@@ -111,8 +121,7 @@ export default function NavigationBar({ onEditProfile }) {
             <button
               className="btn-primary text-sm text-white px-4 py-2 rounded-full "
               onClick={() => {
-                navigate("/login");
-                setMenuOpen(false);
+                logout();
               }}
             >
               Logout

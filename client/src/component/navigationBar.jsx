@@ -8,6 +8,12 @@ const NAV_LINKS = [
   { label: "About", link: "#features" },
   
 ];
+  const logout = () => {
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("user");
+    navigate("/login");
+  };
+
 export default function NavigationBar() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -113,7 +119,7 @@ export default function NavigationBar() {
               key={link.label}
               href={link.href}
               className="block py-2 text-sm text-stone-600"
-              onClick={() => setMenuOpen(false)}
+              onClick={() => logout()}
             >
               {link.label}
             </a>

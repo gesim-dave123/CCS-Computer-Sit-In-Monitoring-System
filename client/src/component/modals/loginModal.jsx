@@ -27,7 +27,7 @@ export default function LoginModal({ onClose, onSwitchToRegister }) {
 
     try {
       const res = await fetch(
-        "http://localhost/CCS-Computer-Sit-In-Monitoring-System/server/src/login.php",
+        "http://localhost:8080/CCS-Computer-Sit-In-Monitoring-System/server/src/login.php",
         {
           method: "POST",
           headers: {
@@ -44,7 +44,7 @@ export default function LoginModal({ onClose, onSwitchToRegister }) {
         return;
       }
 
-      const role = json.user?.email === "admin@ccs.edu" ? "admin" : "student";
+      const role = json.user?.email === "admin@gmail.com" ? "admin" : "student";
       const userWithRole = { ...json.user, role };
 
       localStorage.setItem("authToken", json.token);
