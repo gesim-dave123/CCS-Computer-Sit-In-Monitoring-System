@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 import {
-  MailIcon,
+  IdIcon,
   LockIcon,
   EyeIcon,
   EyeOffIcon,
@@ -12,7 +12,7 @@ import {
 
 export default function LoginModal({ onClose, onSwitchToRegister }) {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
+  const [idNumber, setIdNumber] = useState("");
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
   const [remember, setRemember] = useState(false);
@@ -33,7 +33,7 @@ export default function LoginModal({ onClose, onSwitchToRegister }) {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ email: email, password: password }),
+          body: JSON.stringify({ id_number: idNumber, password: password }),
         },
       );
 
@@ -44,7 +44,7 @@ export default function LoginModal({ onClose, onSwitchToRegister }) {
         return;
       }
 
-      const role = json.user?.email === "admin@gmail.com" ? "admin" : "student";
+      const role = json.user?.role || "student";
       const userWithRole = { ...json.user, role };
 
       localStorage.setItem("authToken", json.token);
@@ -110,22 +110,22 @@ export default function LoginModal({ onClose, onSwitchToRegister }) {
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-5">
-              {/* Email */}
+              {/* ID Number */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Email address
+                  ID Number
                 </label>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                    <MailIcon />
+                    <IdIcon />
                   </span>
                   <input
-                    type="email"
+                    type="text"
                     required
                     className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-800 placeholder-gray-400 outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-100 transition-all"
-                    placeholder="you@university.edu"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="e.g. 2023-00001"
+                    value={idNumber}
+                    onChange={(e) => setIdNumber(e.target.value)}
                   />
                 </div>
               </div>
