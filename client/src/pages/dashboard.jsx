@@ -99,10 +99,9 @@ export default function DashboardPage() {
   ];
 
   const rules = [
-    { icon: User, text: "This Lab is for CCS students only" },
-    { icon: AlertCircle, text: "Please bring your student ID for check-in" },
-    { icon: Clock, text: "Lab hours: 7:00 AM - 6:00 PM (Weekdays)" },
-    { icon: FileText, text: "Report any equipment issues immediately" },
+    { icon: User, text: "Maintain silence, proper decorum and decipline inside the laboratory. Mobile phones wallets and other personal pieces of equipments must be switched off" },
+    { icon: AlertCircle, text: "Games are not allowed in the lab. This include computer realted games, card games and other games that may disrupt the operation of the lab" },
+    { icon: Clock, text: "Surfing the internet is allowed only with the permission of the instructor. Downloading and installing of software are strictly prohibited" },
   ];
 
   const infoFields = [
@@ -138,7 +137,7 @@ export default function DashboardPage() {
     setLoading(true);
     try {
       const res = await fetch(
-        "http://localhost/CCS-Computer-Sit-In-Monitoring-System/server/src/editProfile.php",
+        "http://localhost:8080/CCS-Computer-Sit-In-Monitoring-System/server/src/editProfile.php",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -176,7 +175,7 @@ export default function DashboardPage() {
   };
 
   return (
-    <main className="min-h-screen ">
+    <main className="min-h-screen bg-slate-50">
       <NavigationBar onEditProfile={openEditModal} />
 
       {isEditModalOpen && (
@@ -256,196 +255,209 @@ export default function DashboardPage() {
               </button>
               <button
                 onClick={saveProfile}
-                className="px-4 py-2 rounded-lg bg-purple-600 text-white hover:bg-purple-700"
+                disabled={loading}
+                className="px-4 py-2 rounded-lg bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-60"
               >
-                Save Changes
+                {loading ? "Saving..." : "Save Changes"}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Header Section */}
-      <div className="w-full max-w-full mx-0 px-2 sm:px-4 lg:px-6 py-6">
-        {/* Three-card grid layout */}
-        <div className="grid grid-cols-1 mt-25 lg:grid-cols-3 gap-4">
-          {/* Left Column: Student Information */}
-          <div className="space-y-8">
-            {/* Profile Card */}
-            <div className="bg-white rounded-2xl max-w-300 shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
-              <div className="h-32 bg-purple-800"></div>
-              <div className="px-8 pb-8">
-                <div className="flex justify-center -mt-16 mb-6">
-                  <img
-                    src={profile?.profile_picture || catUser}
-                    onError={(e) => {
-                      e.currentTarget.src = catUser;
-                    }}
-                    alt="Student profile"
-                    className="w-32 h-32 rounded-full border-4 border-white shadow-lg object-cover"
-                  />
-                </div>
-                <h2 className="text-2xl font-bold text-center text-slate-900 mb-1">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-10 space-y-6">
+        <div className="rounded-2xl bg-gradient-to-r from-purple-800 to-purple-700 text-white p-6 sm:p-8 shadow-lg">
+          <p className="text-purple-100 text-sm">Student Dashboard</p>
+          <h1 className="mt-1 text-2xl sm:text-3xl font-bold tracking-tight">
+            Welcome back, {profile?.first_name || "Student"}
+          </h1>
+          <p className="mt-2 text-purple-100 text-sm sm:text-base">
+            View announcements, review lab rules, and keep your profile up to date.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="bg-white rounded-xl border border-purple-100 p-4 shadow-sm">
+            <p className="text-xs uppercase tracking-wide text-slate-500">Sessions</p>
+            <p className="mt-1 text-2xl font-bold text-slate-900">67</p>
+            <p className="text-sm text-purple-700">Total sit-in records</p>
+          </div>
+          <div className="bg-white rounded-xl border border-purple-100 p-4 shadow-sm">
+            <p className="text-xs uppercase tracking-wide text-slate-500">Announcements</p>
+            <p className="mt-1 text-2xl font-bold text-slate-900">{visibleAnnouncements.length}</p>
+            <p className="text-sm text-purple-700">Unread updates</p>
+          </div>
+          <div className="bg-white rounded-xl border border-purple-100 p-4 shadow-sm">
+            <p className="text-xs uppercase tracking-wide text-slate-500">Rules</p>
+            <p className="mt-1 text-2xl font-bold text-slate-900">{rules.length}</p>
+            <p className="text-sm text-purple-700">Lab guidelines</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <aside className="lg:col-span-4 space-y-6">
+            <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-200">
+              <div className="h-20 bg-gradient-to-r from-purple-800 to-purple-700" />
+              <div className="px-6 pb-6 -mt-10">
+                <img
+                  src={profile?.profile_picture || catUser}
+                  onError={(e) => {
+                    e.currentTarget.src = catUser;
+                  }}
+                  alt="Student profile"
+                  className="w-20 h-20 rounded-2xl border-4 border-white object-cover shadow-md"
+                />
+                <h2 className="mt-3 text-xl font-bold text-slate-900">
                   {profile?.first_name} {profile?.last_name}
                 </h2>
-                <p className="text-center text-purple-600 font-semibold">
-                  {profile?.course}
-                </p>
+                <p className="text-sm text-purple-700 font-medium">{profile?.course || "No course"}</p>
+                <p className="text-sm text-slate-500">{profile?.year_level || "No year level"}</p>
+
+                <div className="mt-5 grid grid-cols-2 gap-2">
+                  <button
+                    onClick={openEditModal}
+                    className="px-3 py-2 rounded-lg bg-purple-600 text-white text-sm font-medium hover:bg-purple-700"
+                  >
+                    Edit Profile
+                  </button>
+                  <button
+                    onClick={logout}
+                    className="px-3 py-2 rounded-lg border border-slate-300 text-slate-700 text-sm font-medium hover:bg-slate-50"
+                  >
+                    Logout
+                  </button>
+                </div>
               </div>
             </div>
 
-            {/* Information Fields */}
-            <div className="bg-white rounded-2xl shadow-lg p-8">
-              <h3 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
-                <User className="w-6 h-6 text-purple-600" />
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+              <h3 className="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
+                <User className="w-4 h-4 text-purple-600" />
                 Student Information
               </h3>
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {infoFields.map((field, idx) => {
                   const IconComponent = field.icon;
                   return (
-                    <div
-                      key={idx}
-                      className="flex items-start gap-4 p-4 rounded-lg hover:bg-purple-50 transition-colors duration-200 group"
-                    >
-                      <div className="flex-shrink-0 p-3 bg-purple-100 rounded-lg group-hover:bg-purple-200 transition-colors">
-                        <IconComponent className="w-5 h-5 text-purple-600" />
+                    <div key={idx} className="flex items-start gap-3 rounded-lg p-2 hover:bg-slate-50">
+                      <div className="p-2 rounded-lg bg-purple-50 text-purple-700">
+                        <IconComponent className="w-4 h-4" />
                       </div>
-                      <div className="flex-grow">
-                        <p className="text-sm text-slate-600 font-medium">
-                          {field.label}
-                        </p>
-                        <p className="text-slate-900 font-semibold mt-1">
-                          {field.value || "N/A"}
-                        </p>
+                      <div className="min-w-0">
+                        <p className="text-xs text-slate-500">{field.label}</p>
+                        <p className="text-sm font-semibold text-slate-800 break-words">{field.value || "N/A"}</p>
                       </div>
                     </div>
                   );
                 })}
               </div>
             </div>
-          </div>
+          </aside>
 
-          {/* Right Column: Announcements & Rules */}
-          <div className="space-y-8">
-            {/* Announcements Card */}
-            <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-              <div className="px-8 py-6 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-slate-100">
-                <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-                  <Bell className="w-6 h-6 text-purple-600" />
+          <div className="lg:col-span-8 space-y-6">
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+              <div className="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
+                <h3 className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
+                  <Bell className="w-5 h-5 text-purple-600" />
                   Announcements
                 </h3>
+                <span className="text-xs px-2.5 py-1 rounded-full bg-purple-100 text-purple-700 font-semibold">
+                  {visibleAnnouncements.length} active
+                </span>
               </div>
-              <div className="p-6 space-y-4 max-h-96 overflow-y-auto">
+
+              <div className="p-4 sm:p-5 space-y-3">
                 {visibleAnnouncements.length > 0 ? (
                   visibleAnnouncements.map((announcement) => (
-                    <div
+                    <article
                       key={announcement.id}
-                      className={`rounded-lg border-2 transition-all duration-300 ${
+                      className={`rounded-xl border p-4 transition-all ${
                         announcement.priority === "high"
-                          ? "border-red-200 bg-red-50"
+                          ? "border-red-200 bg-red-50/70"
                           : announcement.priority === "medium"
-                            ? "border-yellow-200 bg-yellow-50"
+                            ? "border-yellow-200 bg-yellow-50/70"
                             : "border-slate-200 bg-slate-50"
-                      } ${expandedAnnouncement === announcement.id ? "ring-2 ring-purple-400" : ""}`}
+                      }`}
                     >
-                      <div className="p-4">
-                        <div className="flex items-start justify-between gap-3">
-                          <div
-                            className="flex-grow cursor-pointer"
-                            onClick={() => toggleAnnouncement(announcement.id)}
-                          >
-                            <div className="flex items-center gap-2 mb-2">
-                              <span
-                                className={`px-3 py-1 rounded-full text-xs font-bold ${
-                                  announcement.priority === "high"
-                                    ? "bg-red-200 text-red-800"
-                                    : announcement.priority === "medium"
-                                      ? "bg-yellow-200 text-yellow-800"
-                                      : "bg-blue-200 text-blue-800"
-                                }`}
-                              >
-                                {announcement.priority.toUpperCase()}
-                              </span>
-                            </div>
-                            <h4 className="font-bold text-slate-900 text-sm">
-                              {announcement.title}
-                            </h4>
-                            <p className="text-xs text-slate-600 mt-1">
-                              {announcement.author} • {announcement.date}
-                            </p>
+                      <div className="flex items-start justify-between gap-3">
+                        <button
+                          type="button"
+                          onClick={() => toggleAnnouncement(announcement.id)}
+                          className="text-left flex-1"
+                        >
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="text-[11px] font-bold px-2 py-1 rounded-full bg-white/80 text-slate-700">
+                              {announcement.priority.toUpperCase()}
+                            </span>
+                            <span className="text-xs text-slate-500">{announcement.date}</span>
                           </div>
+                          <h4 className="font-semibold text-slate-900">{announcement.title}</h4>
+                          <p className="text-xs text-slate-600 mt-1">Posted by {announcement.author}</p>
+                        </button>
+
+                        <button
+                          onClick={() => dismissAnnouncement(announcement.id)}
+                          className="p-1.5 rounded-md hover:bg-white"
+                          title="Dismiss"
+                        >
+                          <X className="w-4 h-4 text-slate-500" />
+                        </button>
+                      </div>
+
+                      {expandedAnnouncement === announcement.id ? (
+                        <div className="mt-3 pt-3 border-t border-slate-200">
+                          <p className="text-sm text-slate-700 leading-relaxed">{announcement.content}</p>
                           <button
-                            onClick={() => dismissAnnouncement(announcement.id)}
-                            className="flex-shrink-0 p-1 hover:bg-slate-200 rounded transition-colors"
-                            title="Dismiss"
+                            onClick={() => toggleAnnouncement(announcement.id)}
+                            className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-purple-700 hover:text-purple-800"
                           >
-                            <X className="w-4 h-4 text-slate-500 hover:text-slate-700" />
+                            Collapse
                           </button>
                         </div>
-
-                        {expandedAnnouncement === announcement.id && (
-                          <div className="mt-4 pt-4 border-t border-slate-300 animate-in fade-in duration-300">
-                            <p className="text-sm text-slate-700 leading-relaxed">
-                              {announcement.content}
-                            </p>
-                            <div className="mt-4 flex gap-2">
-                              <button className="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors">
-                                Learn More
-                              </button>
-                              <button
-                                onClick={() =>
-                                  toggleAnnouncement(announcement.id)
-                                }
-                                className="px-4 py-2 bg-slate-200 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-300 transition-colors"
-                              >
-                                Collapse
-                              </button>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
+                      ) : (
+                        <button
+                          onClick={() => toggleAnnouncement(announcement.id)}
+                          className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-purple-700 hover:text-purple-800"
+                        >
+                          Read more
+                          <ChevronRight className="w-4 h-4" />
+                        </button>
+                      )}
+                    </article>
                   ))
                 ) : (
-                  <div className="text-center py-8">
-                    <Bell className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                    <p className="text-slate-500">
-                      No announcements to display
-                    </p>
+                  <div className="text-center py-10">
+                    <Bell className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+                    <p className="text-slate-500">No announcements to display</p>
                   </div>
                 )}
               </div>
             </div>
-          </div>
 
-          {/* Rules & Regulations Card */}
-          <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-            <div className="px-8 py-6 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-slate-100">
-              <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-                <FileText className="w-6 h-6 text-purple-600" />
-                Lab Rules & Regulations
-              </h3>
-            </div>
-            <div className="p-6 space-y-3">
-              {rules.map((rule, idx) => {
-                const IconComponent = rule.icon;
-                return (
-                  <div
-                    key={idx}
-                    className="flex items-center gap-4 p-3 rounded-lg hover:bg-purple-50 transition-colors group"
-                  >
-                    <div className="flex-shrink-0 p-2 bg-purple-100 rounded-lg group-hover:bg-purple-200 transition-colors">
-                      <IconComponent className="w-5 h-5 text-purple-600" />
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+              <div className="px-5 py-4 border-b border-slate-200">
+                <h3 className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-purple-600" />
+                  Lab Rules & Regulations
+                </h3>
+              </div>
+              <div className="p-4 sm:p-5 space-y-2">
+                {rules.map((rule, idx) => {
+                  const IconComponent = rule.icon;
+                  return (
+                    <div key={idx} className="flex items-start gap-3 rounded-lg p-3 hover:bg-slate-50">
+                      <div className="mt-0.5 p-2 rounded-lg bg-purple-50 text-purple-700">
+                        <IconComponent className="w-4 h-4" />
+                      </div>
+                      <p className="text-sm text-slate-700 leading-relaxed">{rule.text}</p>
                     </div>
-                    <p className="text-slate-700 font-medium">{rule.text}</p>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </section>
     </main>
   );
 }
