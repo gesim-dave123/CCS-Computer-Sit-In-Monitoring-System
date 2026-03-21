@@ -1,7 +1,7 @@
 :root {
-  --purple: #5b2d8e;
-  --purple-light: #7c3fb5;
-  --purple-dark: #3a1660;
+  --purple: #381872;
+  --purple-light: #5428a8;
+  --purple-dark: #240d48;
   --purple-pale: #f3eef9;
   --gold: #c9973a;
   --gold-light: #e4b857;
@@ -30,14 +30,14 @@
 
 /* ───── BUTTONS ───── */
 .btn-primary {
-  background: linear-gradient(135deg, #5b2d8e, #7c3fb5);
+  background: linear-gradient(135deg, #240d48, #5428a8);
   transition: all 0.3s ease;
-  box-shadow: 0 4px 20px rgba(91, 45, 142, 0.28);
+  box-shadow: 0 4px 20px rgba(56, 24, 114, 0.32);
 }
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 36px rgba(91, 45, 142, 0.38);
+  box-shadow: 0 10px 36px rgba(56, 24, 114, 0.44);
 }
 
 .btn-outline {
@@ -247,7 +247,7 @@
 
 /* ───── CTA SECTION ───── */
 .cta-section {
-  background: linear-gradient(135deg, #2e1162 0%, #5b2d8e 50%, #3a1660 100%);
+  background: linear-gradient(135deg, #210a44 0%, #381872 50%, #240d48 100%);
   position: relative;
   overflow: hidden;
 }
