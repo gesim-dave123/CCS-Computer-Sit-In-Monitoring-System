@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Navigate } from "react-router-dom";
+import AdminNavigationBar from "../component/adminNavigationBar";
 
 function getArcPath(value, startAngle, radius = 16) {
   const endAngle = startAngle + (value / 100) * 360;
@@ -78,8 +79,8 @@ export default function AdminDashboard() {
 
   return (
     <main className="min-h-screen bg-slate-50 text-slate-800 p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
-        <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+      <AdminNavigationBar />
+      <div className="max-w-7xl mx-auto space-y-6 mt-25">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="bg-white shadow-md rounded-2xl p-6">
             <h2 className="text-xl font-semibold mb-4">Statistics</h2>

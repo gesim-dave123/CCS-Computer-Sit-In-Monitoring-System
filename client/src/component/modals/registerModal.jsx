@@ -60,15 +60,16 @@ export default function RegisterModal({ onClose, onSwitchToLogin }) {
             email: email,
             address: address,
             password: password,
+            currentEmail: JSON.parse(localStorage.getItem("user") || "null")?.email || null,
           }),
         },
       );
 
       const json = await res.json(); // Parse BEFORE checking res.ok
 
-      if (!res.ok) {
+       if (!res.ok) {
         setError(json.error || "Registration failed. Please try again.");
-        return; 
+        return;
       }
       setDone(true);
     } catch (err) {

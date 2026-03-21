@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import NavigationBar from "../component/studentNavBar";
+import catUser from "../assets/image/catUser.png";
 import {
   User,
   Mail,
@@ -25,6 +26,38 @@ export default function DashboardPage() {
   const [dismissedAnnouncements, setDismissedAnnouncements] = useState(
     new Set(),
   );
+  const [editFirstName, setFirstName] = useState("");
+  const [editLastName, setLastName] = useState("");
+  const [editMiddleName, setMiddleName] = useState("");
+  const [editEmail, setEmail] = useState("");
+  const [editAddress, setAddress] = useState("");
+  const [editCourse, setCourse] = useState("");
+  const [editYearLevel, setYearLevel] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!profile) return;
+    setFirstName(profile.first_name || "");
+    setMiddleName(profile.middle_name || "");
+    setLastName(profile.last_name || "");
+    setEmail(profile.email || "");
+    setAddress(profile.address || "");
+    setCourse(profile.course || "");
+    setYearLevel(profile.year_level || "");
+  }, [profile]);
+
+  const openEditModal = () => {
+    setFirstName(profile?.first_name || "");
+    setMiddleName(profile?.middle_name || "");
+    setLastName(profile?.last_name || "");
+    setEmail(profile?.email || "");
+    setAddress(profile?.address || "");
+    setCourse(profile?.course || "");
+    setYearLevel(profile?.year_level || "");
+    setError("");
+    setEditModalOpen(true);
+  };
 
   const logout = () => {
     localStorage.removeItem("authToken");
@@ -99,14 +132,52 @@ export default function DashboardPage() {
     (a) => !dismissedAnnouncements.has(a.id),
   );
 
-  const saveProfile = () => {
-    localStorage.setItem("user", JSON.stringify(profile));
-    setEditModalOpen(false);
+  const saveProfile = async (e) => {
+    e.preventDefault();
+
+    setLoading(true);
+    try {
+      const res = await fetch(
+        "http://localhost/CCS-Computer-Sit-In-Monitoring-System/server/src/editProfile.php",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            firstName: editFirstName,
+            lastName: editLastName,
+            MiddleName: editMiddleName || null,
+            email: editEmail,
+            currentEmail: profile?.email || editEmail,
+            course: editCourse,
+            address: editAddress,
+            yearLevel: editYearLevel,
+          }),
+        },
+      );
+
+      const json = await res.json();
+
+      if (!res.ok) {
+        setError(json.error || "Edit profile failed. Please try again.");
+        return;
+      }
+      if (json.user) {
+        const mergedUser = { ...profile, ...json.user };
+        setProfile(mergedUser);
+        localStorage.setItem("user", JSON.stringify(mergedUser));
+      }
+      setError("");
+      setEditModalOpen(false);
+    } catch (err) {
+      setError("Could not reach the server. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <main className="min-h-screen ">
-      <NavigationBar onEditProfile={() => setEditModalOpen(true)} />
+      <NavigationBar onEditProfile={openEditModal} />
 
       {isEditModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
@@ -121,40 +192,33 @@ export default function DashboardPage() {
               </button>
             </div>
             <div className="px-6 py-4 space-y-3">
+              {error && <p className="text-sm text-red-600">{error}</p>}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <input
                   type="text"
-                  value={profile.first_name || ""}
-                  onChange={(e) =>
-                    setProfile({ ...profile, first_name: e.target.value })
-                  }
+                  value={editFirstName}
+                  onChange={(e) => setFirstName(e.target.value)}
                   placeholder="First Name"
                   className="w-full px-3 py-2 border rounded-lg focus:ring-purple-300 focus:outline-none"
                 />
                 <input
                   type="text"
-                  value={profile.middle_name || ""}
-                  onChange={(e) =>
-                    setProfile({ ...profile, middle_name: e.target.value })
-                  }
+                  value={editMiddleName}
+                  onChange={(e) => setMiddleName(e.target.value)}
                   placeholder="Middle Name"
                   className="w-full px-3 py-2 border rounded-lg focus:ring-purple-300 focus:outline-none"
                 />
                 <input
                   type="text"
-                  value={profile.last_name || ""}
-                  onChange={(e) =>
-                    setProfile({ ...profile, last_name: e.target.value })
-                  }
+                  value={editLastName}
+                  onChange={(e) => setLastName(e.target.value)}
                   placeholder="Last Name"
                   className="w-full px-3 py-2 border rounded-lg focus:ring-purple-300 focus:outline-none"
                 />
                 <input
                   type="text"
-                  value={profile.course || ""}
-                  onChange={(e) =>
-                    setProfile({ ...profile, course: e.target.value })
-                  }
+                  value={editCourse}
+                  onChange={(e) => setCourse(e.target.value)}
                   placeholder="Course"
                   className="w-full px-3 py-2 border rounded-lg focus:ring-purple-300 focus:outline-none"
                 />
@@ -162,28 +226,22 @@ export default function DashboardPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <input
                   type="text"
-                  value={profile.year_level || ""}
-                  onChange={(e) =>
-                    setProfile({ ...profile, year_level: e.target.value })
-                  }
+                  value={editYearLevel}
+                  onChange={(e) => setYearLevel(e.target.value)}
                   placeholder="Year Level"
                   className="w-full px-3 py-2 border rounded-lg focus:ring-purple-300 focus:outline-none"
                 />
                 <input
                   type="email"
-                  value={profile.email || ""}
-                  onChange={(e) =>
-                    setProfile({ ...profile, email: e.target.value })
-                  }
+                  value={editEmail}
+                  onChange={(e) => setEmail(e.target.value)}
                   placeholder="Email"
                   className="w-full px-3 py-2 border rounded-lg focus:ring-purple-300 focus:outline-none"
                 />
               </div>
               <textarea
-                value={profile.address || ""}
-                onChange={(e) =>
-                  setProfile({ ...profile, address: e.target.value })
-                }
+                value={editAddress}
+                onChange={(e) => setAddress(e.target.value)}
                 placeholder="Address"
                 className="w-full px-3 py-2 border rounded-lg focus:ring-purple-300 focus:outline-none"
                 rows={3}
@@ -219,10 +277,11 @@ export default function DashboardPage() {
               <div className="px-8 pb-8">
                 <div className="flex justify-center -mt-16 mb-6">
                   <img
-                    src={
-                      profile?.profile_picture ||
-                      "https://via.placeholder.com/150"
-                    }
+                    src={profile?.profile_picture || catUser}
+                    onError={(e) => {
+                      e.currentTarget.src = catUser;
+                    }}
+                    alt="Student profile"
                     className="w-32 h-32 rounded-full border-4 border-white shadow-lg object-cover"
                   />
                 </div>
