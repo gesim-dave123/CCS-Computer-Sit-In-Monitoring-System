@@ -62,33 +62,33 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $data = json_decode(file_get_contents("php://input"), true);
 
 // Validate input
-if (empty($data['email']) || empty($data['password'])) {
+if (empty($data['id_number']) || empty($data['password'])) {
     http_response_code(422);
-    echo json_encode(["error" => "Email and password are required"]);
+    echo json_encode(["error" => "ID number and password are required"]);
     exit();
 }
 
-$email = $data['email'];
+$idNumber = $data['id_number'];
 $password = $data['password'];
 
 try {
     // Find user
-    $stmt = $pdo->prepare("SELECT id_number, first_name, last_name, middle_name, course,year_level, address, email,role, password FROM users WHERE email = ?");
-    $stmt->execute([$email]);
+    $stmt = $pdo->prepare("SELECT id_number, first_name, last_name, middle_name, course,year_level, address, email,role, profilePicture, remaining_sessions, password FROM users WHERE id_number = ?");
+    $stmt->execute([$idNumber]);
 
     $user = $stmt->fetch();
 
     // Check if user exists
     if (!$user) {
         http_response_code(401);
-        echo json_encode(["error" => "Invalid email or password"]);
+        echo json_encode(["error" => "Invalid ID number or password"]);
         exit();
     }
 
     // Verify password
     if (!password_verify($password, $user['password'])) {
         http_response_code(401);
-        echo json_encode(["error" => "Invalid email or password"]);
+        echo json_encode(["error" => "Invalid ID number or password"]);
         exit();
     }
 
@@ -111,7 +111,9 @@ try {
             "year_level" => $user['year_level'],
             "email" => $user['email'],
             "address" => $user['address'],
-            "role" => $user['role']
+            "role" => $user['role'],
+            "profilePicture" => $user['profilePicture'],
+            "remaining_sessions" => $user['remaining_sessions']
         ]
     ];
 
