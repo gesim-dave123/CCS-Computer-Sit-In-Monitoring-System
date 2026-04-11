@@ -1,15 +1,24 @@
 import { useEffect } from "react";
-import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
+import {
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 import "./App.css";
 import LandingPage from "./pages/landingPage";
 import LoginPage from "./pages/loginPage";
 import RegisterPage from "./pages/register";
 import DashboardPage from "./pages/dashboard";
+import StudentHistoryPage from "./pages/studentHistory";
+import StudentAnnouncementsPage from "./pages/studentAnnouncements";
 import AdminDashboard from "./pages/adminDashboard";
 import AdminStudentsPage from "./pages/adminStudents";
 import AdminSitInPage from "./pages/adminSitIn";
 import AdminSitInRecordsPage from "./pages/adminSitInRecords";
 import AdminSitInReportsPage from "./pages/adminSitInReports";
+import AdminAnnouncementsPage from "./pages/adminAnnouncements";
 
 function StudentProtectedRoute({ children }) {
   const token = localStorage.getItem("authToken");
@@ -53,7 +62,7 @@ function App() {
       const path = window.location.pathname;
 
       const isAdminPath = path.startsWith("/admin");
-      const isStudentPath = path === "/dashboard";
+      const isStudentPath = path.startsWith("/dashboard");
 
       if (!token && (isAdminPath || isStudentPath)) {
         navigate("/login", { replace: true });
@@ -104,6 +113,22 @@ function App() {
         }
       />
       <Route
+        path="/dashboard/history"
+        element={
+          <StudentProtectedRoute>
+            <StudentHistoryPage />
+          </StudentProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/announcements"
+        element={
+          <StudentProtectedRoute>
+            <StudentAnnouncementsPage />
+          </StudentProtectedRoute>
+        }
+      />
+      <Route
         path="/admin"
         element={
           <AdminProtectedRoute>
@@ -140,6 +165,14 @@ function App() {
         element={
           <AdminProtectedRoute>
             <AdminSitInReportsPage />
+          </AdminProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/announcements"
+        element={
+          <AdminProtectedRoute>
+            <AdminAnnouncementsPage />
           </AdminProtectedRoute>
         }
       />

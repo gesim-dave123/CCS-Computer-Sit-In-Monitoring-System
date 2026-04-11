@@ -1,28 +1,23 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 0);
-ini_set('log_errors', 1);
-
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+
+
 $allowed_origins = [
     'http://localhost:5173',
-    'http://localhost:5174',
     'http://127.0.0.1:5173',
-    'http://127.0.0.1:5174',
+    // 'https://future-production-domain.com' // Add this when deploying
 ];
 
-if ($origin && in_array($origin, $allowed_origins, true)) {
-    header("Access-Control-Allow-Origin: {$origin}");
-} else if (preg_match('/^http:\/\/localhost(:\d+)?$/', $origin)) {
-    header("Access-Control-Allow-Origin: {$origin}");
+if (in_array($origin, $allowed_origins, true)) {
+    header("Access-Control-Allow-Origin: $origin");
 }
 
 header('Vary: Origin');
 header('Access-Control-Allow-Credentials: true');
-header('Access-Control-Allow-Methods: GET, OPTIONS');
+header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
 header('Access-Control-Max-Age: 3600');
-header('Content-Type: application/json; charset=UTF-8');
+header("Content-Type: application/json; charset=UTF-8");
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
@@ -46,6 +41,9 @@ try {
 
     $totalSitInsStmt = $pdo->query("SELECT COUNT(*) AS total FROM sit_in_sessions");
     $totalSitIns = (int)($totalSitInsStmt->fetch()['total'] ?? 0);
+
+    $announcementStmt = $pdo->query("SELECT COUNT(*) AS total FROM announcements");
+    $announcementCount = (int)($announcementStmt->fetch()['total'] ?? 0);
 
     $purposesStmt = $pdo->query(
         "SELECT purpose, COUNT(*) AS total
@@ -80,12 +78,34 @@ try {
         ];
     }
 
+    $leaderboardStmt = $pdo->query(
+        "SELECT
+            id_number,
+            TRIM(CONCAT(first_name, ' ', COALESCE(middle_name, ''), ' ', last_name)) AS full_name,
+            IFNULL(used_session, 0) AS used_session
+         FROM users
+         WHERE role = 'student'
+         ORDER BY used_session DESC, id_number ASC
+         LIMIT 10"
+    );
+    $leaderboardRows = $leaderboardStmt->fetchAll();
+    $leaderboard = array_map(
+        fn($row) => [
+            'id_number' => $row['id_number'],
+            'full_name' => trim((string)$row['full_name']) !== '' ? $row['full_name'] : $row['id_number'],
+            'used_session' => (int)$row['used_session'],
+        ],
+        $leaderboardRows
+    );
+
     echo json_encode([
         'stats' => [
             'registeredStudents' => $registeredStudents,
             'currentSitIns' => $currentSitIns,
             'totalSitIns' => $totalSitIns,
+            'announcementCount' => $announcementCount,
             'purposes' => $purposes,
+            'leaderboard' => $leaderboard,
         ],
     ]);
 } catch (PDOException $e) {

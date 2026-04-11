@@ -1,25 +1,20 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 0);
-ini_set('log_errors', 1);
-
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+
+
 $allowed_origins = [
     'http://localhost:5173',
-    'http://localhost:5174',
     'http://127.0.0.1:5173',
-    'http://127.0.0.1:5174',
+    // 'https://future-production-domain.com' // Add this when deploying
 ];
 
-if ($origin && in_array($origin, $allowed_origins, true)) {
-    header("Access-Control-Allow-Origin: {$origin}");
-} else if (preg_match('/^http:\/\/localhost(:\d+)?$/', $origin)) {
-    header("Access-Control-Allow-Origin: {$origin}");
+if (in_array($origin, $allowed_origins, true)) {
+    header("Access-Control-Allow-Origin: $origin");
 }
 
 header('Vary: Origin');
 header('Access-Control-Allow-Credentials: true');
-header('Access-Control-Allow-Methods: POST, OPTIONS');
+header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
 header('Access-Control-Max-Age: 3600');
 header("Content-Type: application/json; charset=UTF-8");
@@ -58,7 +53,7 @@ if ($idNumber === '' || $name === '' || $purpose === '' || $lab === '') {
 try {
     $pdo->beginTransaction();
 
-    $userStmt = $pdo->prepare("SELECT id, remaining_sessions, is_in_session FROM users WHERE id_number = ? AND role = 'student' LIMIT 1 FOR UPDATE");
+    $userStmt = $pdo->prepare("SELECT id, remaining_sessions, used_session, is_in_session FROM users WHERE id_number = ? AND role = 'student' LIMIT 1 FOR UPDATE");
     $userStmt->execute([$idNumber]);
     $user = $userStmt->fetch();
 
@@ -90,6 +85,17 @@ try {
     $updateStmt = $pdo->prepare("UPDATE users SET is_in_session = 1 WHERE id = ?");
     $updateStmt->execute([(int)$user['id']]);
 
+    $notifyStmt = $pdo->prepare(
+        "INSERT INTO notifications (user_id, title, message, category, is_read, action_url)
+         VALUES (?, ?, ?, 'sit_in', 0, ?)"
+    );
+    $notifyStmt->execute([
+        (int)$user['id'],
+        'Sit-In Session Started',
+        "Your sit-in session has started in {$lab} for {$purpose}.",
+        '/dashboard',
+    ]);
+
     $pdo->commit();
 
     http_response_code(200);
@@ -102,6 +108,7 @@ try {
             "purpose" => $purpose,
             "lab" => $lab,
             "status" => "in_session",
+            "used_session" => (int)$user['used_session'],
         ],
     ]);
 } catch (PDOException $e) {

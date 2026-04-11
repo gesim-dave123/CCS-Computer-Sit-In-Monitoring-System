@@ -40,7 +40,7 @@ export default function AdminStudentsPage() {
 
     try {
       const res = await fetch(
-        `http://localhost:8080/CCS-Computer-Sit-In-Monitoring-System/server/src/adminStudents.php?page=${targetPage}&limit=10&id=${encodeURIComponent(targetQuery)}`,
+        `${import.meta.env.VITE_API_BASE_URL}/adminStudents.php?page=${targetPage}&limit=10&id=${encodeURIComponent(targetQuery)}`,
       );
       const json = await res.json();
 
@@ -92,7 +92,7 @@ export default function AdminStudentsPage() {
 
     try {
       const res = await fetch(
-        "http://localhost:8080/CCS-Computer-Sit-In-Monitoring-System/server/src/adminStartSitIn.php",
+        `${import.meta.env.VITE_API_BASE_URL}/adminStartSitIn.php`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

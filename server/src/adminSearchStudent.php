@@ -1,25 +1,20 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 0);
-ini_set('log_errors', 1);
-
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+
+
 $allowed_origins = [
     'http://localhost:5173',
-    'http://localhost:5174',
     'http://127.0.0.1:5173',
-    'http://127.0.0.1:5174',
+    // 'https://future-production-domain.com' // Add this when deploying
 ];
 
-if ($origin && in_array($origin, $allowed_origins, true)) {
-    header("Access-Control-Allow-Origin: {$origin}");
-} else if (preg_match('/^http:\/\/localhost(:\d+)?$/', $origin)) {
-    header("Access-Control-Allow-Origin: {$origin}");
+if (in_array($origin, $allowed_origins, true)) {
+    header("Access-Control-Allow-Origin: $origin");
 }
 
 header('Vary: Origin');
 header('Access-Control-Allow-Credentials: true');
-header('Access-Control-Allow-Methods: GET, OPTIONS');
+header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
 header('Access-Control-Max-Age: 3600');
 header("Content-Type: application/json; charset=UTF-8");

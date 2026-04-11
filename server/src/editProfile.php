@@ -1,23 +1,14 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 0);
-ini_set('log_errors', 1);
-
-// Get the origin from the request
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 
-// CORS headers (needed for both Apache and PHP built-in server)
 $allowed_origins = [
     'http://localhost:5173',
-    'http://localhost:5174',
     'http://127.0.0.1:5173',
-    'http://127.0.0.1:5174',
+    // 'https://future-production-domain.com' // Add this when deploying
 ];
 
-if ($origin && in_array($origin, $allowed_origins, true)) {
-    header("Access-Control-Allow-Origin: {$origin}");
-} else if (preg_match('/^http:\/\/localhost(:\d+)?$/', $origin)) {
-    header("Access-Control-Allow-Origin: {$origin}");
+if (in_array($origin, $allowed_origins, true)) {
+    header("Access-Control-Allow-Origin: $origin");
 }
 
 header('Vary: Origin');
@@ -64,7 +55,8 @@ if ($isMultipart) {
 // Match keys sent by frontend dashboard form.
 $firstName = trim($data['firstName'] ?? '');
 $lastName = trim($data['lastName'] ?? '');
-$middleName = isset($data['MiddleName']) ? trim((string) $data['MiddleName']) : null;
+$middleNameRaw = $data['middleName'] ?? $data['MiddleName'] ?? null;
+$middleName = ($middleNameRaw === null || $middleNameRaw === '') ? null : trim((string) $middleNameRaw);
 $email = trim($data['email'] ?? '');
 $course = trim($data['course'] ?? '');
 $address = trim($data['address'] ?? '');
@@ -156,6 +148,16 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
 }
 
 try {
+	// Gracefully handle environments where the profile image column was not migrated yet.
+	$profilePictureColumnExists = false;
+	try {
+		$columnStmt = $pdo->prepare("SHOW COLUMNS FROM users LIKE 'profilePicture'");
+		$columnStmt->execute();
+		$profilePictureColumnExists = (bool) $columnStmt->fetch();
+	} catch (PDOException $columnError) {
+		$profilePictureColumnExists = false;
+	}
+
 	$checkUserStmt = $pdo->prepare("SELECT id FROM users WHERE email = ? LIMIT 1");
 	$checkUserStmt->execute([$currentEmail]);
 	$existingUser = $checkUserStmt->fetch();
@@ -195,7 +197,7 @@ try {
 		$address,
 	];
 
-	if ($uploadedImageUrl !== null) {
+	if ($uploadedImageUrl !== null && $profilePictureColumnExists) {
 		$updateSql .= ",
 			 profilePicture = ?";
 		$updateParams[] = $uploadedImageUrl;
@@ -208,8 +210,13 @@ try {
 	$updateStmt = $pdo->prepare($updateSql);
 	$updateStmt->execute($updateParams);
 
+	$selectColumns = "id_number, first_name, middle_name, last_name, course, year_level, email, address, role";
+	$selectColumns .= $profilePictureColumnExists
+		? ", profilePicture"
+		: ", NULL AS profilePicture";
+
 	$userStmt = $pdo->prepare(
-		"SELECT id_number, first_name, middle_name, last_name, course, year_level, email, address, role, profilePicture
+		"SELECT $selectColumns
 		 FROM users
 		 WHERE email = ?
 		 LIMIT 1"

@@ -40,7 +40,7 @@ export default function AdminSearchPage() {
 
     try {
       const res = await fetch(
-        `http://localhost:8080/CCS-Computer-Sit-In-Monitoring-System/server/src/adminSearchStudent.php?id=${encodeURIComponent(query.trim())}`,
+        `${import.meta.env.VITE_API_BASE_URL}/adminSearchStudent.php?id=${encodeURIComponent(query.trim())}`,
       );
 
       const json = await res.json();

@@ -5,6 +5,7 @@ import {
   Menu,
   X,
   LayoutDashboard,
+  Bell,
   Users,
   Monitor,
   FileText,
@@ -22,10 +23,19 @@ const NAV_LINKS = [
     icon: Monitor,
     children: [
       { label: "Current Sit-In", icon: Monitor, path: "/admin/sit-in" },
-      { label: "Sit-In Records", icon: FileText, path: "/admin/sit-in/records" },
-      { label: "View Sit-In Reports", icon: BarChart3, path: "/admin/sit-in/reports" },
+      {
+        label: "Sit-In Records",
+        icon: FileText,
+        path: "/admin/sit-in/records",
+      },
+      {
+        label: "View Sit-In Reports",
+        icon: BarChart3,
+        path: "/admin/sit-in/reports",
+      },
     ],
   },
+  { label: "Announcements", icon: Bell, path: "/admin/announcements" },
   { label: "Feedback Reports", icon: MessageSquare },
   { label: "Reservations", icon: CalendarCheck2 },
 ];
@@ -68,7 +78,8 @@ export default function AdminNavigationBar() {
           {NAV_LINKS.map((link) => {
             const Icon = link.icon;
             const isActive = link.path && location.pathname === link.path;
-            const hasChildren = Array.isArray(link.children) && link.children.length > 0;
+            const hasChildren =
+              Array.isArray(link.children) && link.children.length > 0;
             const isParentActive = hasChildren
               ? link.children.some((child) => location.pathname === child.path)
               : false;
@@ -93,25 +104,25 @@ export default function AdminNavigationBar() {
 
                   <div className="absolute left-full top-0 ml-0 pl-2 w-60 opacity-0 invisible translate-x-1 pointer-events-none transition-all duration-150 z-20 group-hover/sitin:opacity-100 group-hover/sitin:visible group-hover/sitin:translate-x-0 group-hover/sitin:pointer-events-auto group-focus-within/sitin:opacity-100 group-focus-within/sitin:visible group-focus-within/sitin:translate-x-0 group-focus-within/sitin:pointer-events-auto">
                     <div className="bg-white border border-slate-200 shadow-lg rounded-xl p-2">
-                    {link.children.map((child) => {
-                      const ChildIcon = child.icon;
-                      const isChildActive = location.pathname === child.path;
-                      return (
-                        <button
-                          key={child.label}
-                          type="button"
-                          onClick={() => navigate(child.path)}
-                          className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left text-sm ${
-                            isChildActive
-                              ? "bg-purple-100 text-purple-800"
-                              : "text-slate-700 hover:bg-purple-50 hover:text-purple-800"
-                          }`}
-                        >
-                          <ChildIcon className="w-4 h-4" />
-                          {child.label}
-                        </button>
-                      );
-                    })}
+                      {link.children.map((child) => {
+                        const ChildIcon = child.icon;
+                        const isChildActive = location.pathname === child.path;
+                        return (
+                          <button
+                            key={child.label}
+                            type="button"
+                            onClick={() => navigate(child.path)}
+                            className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left text-sm ${
+                              isChildActive
+                                ? "bg-purple-100 text-purple-800"
+                                : "text-slate-700 hover:bg-purple-50 hover:text-purple-800"
+                            }`}
+                          >
+                            <ChildIcon className="w-4 h-4" />
+                            {child.label}
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
@@ -168,14 +179,20 @@ export default function AdminNavigationBar() {
               {NAV_LINKS.map((link) => {
                 const Icon = link.icon;
                 const isActive = link.path && location.pathname === link.path;
-                const hasChildren = Array.isArray(link.children) && link.children.length > 0;
+                const hasChildren =
+                  Array.isArray(link.children) && link.children.length > 0;
                 const isParentActive = hasChildren
-                  ? link.children.some((child) => location.pathname === child.path)
+                  ? link.children.some(
+                      (child) => location.pathname === child.path,
+                    )
                   : false;
 
                 if (hasChildren) {
                   return (
-                    <div key={link.label} className="rounded-lg border border-slate-200 p-2">
+                    <div
+                      key={link.label}
+                      className="rounded-lg border border-slate-200 p-2"
+                    >
                       <div
                         className={`flex items-center gap-2 px-2 py-1.5 text-sm font-medium ${
                           isParentActive ? "text-purple-800" : "text-slate-700"
@@ -187,7 +204,8 @@ export default function AdminNavigationBar() {
                       <div className="mt-1 space-y-1">
                         {link.children.map((child) => {
                           const ChildIcon = child.icon;
-                          const isChildActive = location.pathname === child.path;
+                          const isChildActive =
+                            location.pathname === child.path;
                           return (
                             <button
                               key={child.label}
@@ -250,4 +268,3 @@ export default function AdminNavigationBar() {
     </>
   );
 }
-

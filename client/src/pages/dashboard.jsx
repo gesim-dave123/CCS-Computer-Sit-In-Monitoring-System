@@ -21,6 +21,7 @@ import {
 export default function DashboardPage() {
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user") || "null");
+  const activeIdNumber = user?.id_number || "";
   const [profile, setProfile] = useState(user || {});
   const [isEditModalOpen, setEditModalOpen] = useState(false);
   const [expandedAnnouncement, setExpandedAnnouncement] = useState(null);
@@ -38,6 +39,8 @@ export default function DashboardPage() {
   const [editPhotoPreview, setEditPhotoPreview] = useState(catUser);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [announcements, setAnnouncements] = useState([]);
+  const [announcementsLoading, setAnnouncementsLoading] = useState(false);
 
   useEffect(() => {
     if (!profile) return;
@@ -59,10 +62,129 @@ export default function DashboardPage() {
     setCourse(profile?.course || "");
     setYearLevel(profile?.year_level || "");
     setEditPhotoFile(null);
-    setEditPhotoPreview(profile?.profilePicture || profile?.profile_picture || catUser);
+    setEditPhotoPreview(
+      profile?.profilePicture || profile?.profile_picture || catUser,
+    );
     setError("");
     setEditModalOpen(true);
   };
+
+  const formatAnnouncementDate = (value) => {
+    if (!value) return "N/A";
+
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) {
+      return value;
+    }
+
+    return parsed.toLocaleDateString(undefined, {
+      year: "numeric",
+      month: "short",
+      day: "2-digit",
+    });
+  };
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchAnnouncements = async () => {
+      setAnnouncementsLoading(true);
+      try {
+        const res = await fetch(
+          `${import.meta.env.VITE_API_BASE_URL}/createAnnouncement.php?audience=student&limit=20`,
+        );
+        const json = await res.json();
+
+        if (!res.ok) {
+          if (isMounted) {
+            setAnnouncements([]);
+          }
+          return;
+        }
+
+        const rows = Array.isArray(json.announcements)
+          ? json.announcements
+          : [];
+
+        if (isMounted) {
+          setAnnouncements(
+            rows.map((item) => ({
+              id: item.announcement_id,
+              title: item.title,
+              author: item.author_name || "CCS ADMIN",
+              date: formatAnnouncementDate(item.publish_at || item.created_at),
+              content: item.content,
+              type: item.type || "general",
+              priority: item.priority || "low",
+            })),
+          );
+        }
+      } catch {
+        if (isMounted) {
+          setAnnouncements([]);
+        }
+      } finally {
+        if (isMounted) {
+          setAnnouncementsLoading(false);
+        }
+      }
+    };
+
+    fetchAnnouncements();
+    const refreshId = window.setInterval(fetchAnnouncements, 30000);
+
+    return () => {
+      isMounted = false;
+      window.clearInterval(refreshId);
+    };
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchSessionStatus = async () => {
+      if (!activeIdNumber) return;
+
+      try {
+        const res = await fetch(
+          `${import.meta.env.VITE_API_BASE_URL}/studentSessionStatus.php?id_number=${encodeURIComponent(activeIdNumber)}`,
+        );
+        const json = await res.json();
+
+        if (!res.ok || !isMounted) {
+          return;
+        }
+
+        setProfile((prev) => {
+          const merged = {
+            ...prev,
+            remaining_sessions: Number(
+              json.remaining_sessions ?? prev.remaining_sessions ?? 30,
+            ),
+            is_in_session: Number(
+              json.is_in_session ?? prev.is_in_session ?? 0,
+            ),
+            total_sit_in_records: Number(
+              json.sessions_used ?? prev.total_sit_in_records ?? 0,
+            ),
+          };
+
+          localStorage.setItem("user", JSON.stringify(merged));
+          return merged;
+        });
+      } catch {
+        // Keep dashboard usable if status endpoint is temporarily unavailable.
+      }
+    };
+
+    fetchSessionStatus();
+    const refreshId = window.setInterval(fetchSessionStatus, 15000);
+
+    return () => {
+      isMounted = false;
+      window.clearInterval(refreshId);
+    };
+  }, [activeIdNumber]);
 
   const handlePhotoChange = (e) => {
     const file = e.target.files?.[0];
@@ -96,43 +218,19 @@ export default function DashboardPage() {
     navigate("/login", { replace: true });
   };
 
-  const announcements = [
-    {
-      id: 1,
-      title: "Computer Lab Maintenance",
-      author: "CCS ADMIN",
-      date: "2024 Feb 11",
-      content:
-        "Important Announcement: Computer Lab Maintenance on Feb 15-16. The lab will be unavailable during these dates. Please plan your activities accordingly.",
-      type: "maintenance",
-      priority: "high",
-    },
-    {
-      id: 2,
-      title: "New Lab Rules Updated",
-      author: "Lab Supervisor",
-      date: "2024 Feb 10",
-      content:
-        "We have updated our lab policies to ensure better safety and efficiency. All students must review the new guidelines.",
-      type: "rules",
-      priority: "medium",
-    },
-    {
-      id: 3,
-      title: "Workshop Announcement",
-      author: "CCS Department",
-      date: "2024 Feb 09",
-      content:
-        "Join us for an exclusive workshop on Web Development. Registration is now open for all CCS students.",
-      type: "event",
-      priority: "low",
-    },
-  ];
-
   const rules = [
-    { icon: User, text: "Maintain silence, proper decorum and decipline inside the laboratory. Mobile phones wallets and other personal pieces of equipments must be switched off" },
-    { icon: AlertCircle, text: "Games are not allowed in the lab. This include computer realted games, card games and other games that may disrupt the operation of the lab" },
-    { icon: Clock, text: "Surfing the internet is allowed only with the permission of the instructor. Downloading and installing of software are strictly prohibited" },
+    {
+      icon: User,
+      text: "Maintain silence, proper decorum and decipline inside the laboratory. Mobile phones wallets and other personal pieces of equipments must be switched off",
+    },
+    {
+      icon: AlertCircle,
+      text: "Games are not allowed in the lab. This include computer realted games, card games and other games that may disrupt the operation of the lab",
+    },
+    {
+      icon: Clock,
+      text: "Surfing the internet is allowed only with the permission of the instructor. Downloading and installing of software are strictly prohibited",
+    },
   ];
 
   const defaultSessionAllocation = 30;
@@ -144,6 +242,7 @@ export default function DashboardPage() {
   const totalSitInRecords = Number.isFinite(parsedTotalRecords)
     ? Math.max(0, parsedTotalRecords)
     : Math.max(0, defaultSessionAllocation - safeRemainingSessions);
+  const isInSession = Number(profile?.is_in_session) === 1;
 
   const infoFields = [
     {
@@ -155,7 +254,16 @@ export default function DashboardPage() {
     { label: "Year Level", value: profile?.year_level, icon: Calendar },
     { label: "Email", value: profile?.email, icon: Mail },
     { label: "Address", value: profile?.address, icon: MapPin },
-    { label: "Remaining Sessions", value: safeRemainingSessions, icon: Briefcase },
+    {
+      label: "Session Status",
+      value: isInSession ? "In Session" : "Not In Session",
+      icon: Clock,
+    },
+    {
+      label: "Remaining Sessions",
+      value: safeRemainingSessions,
+      icon: Briefcase,
+    },
   ];
 
   const toggleAnnouncement = (id) => {
@@ -192,7 +300,7 @@ export default function DashboardPage() {
       }
 
       const res = await fetch(
-        "http://localhost:8080/CCS-Computer-Sit-In-Monitoring-System/server/src/editProfile.php",
+        `${import.meta.env.VITE_API_BASE_URL}/editProfile.php`,
         {
           method: "POST",
           body: formData,
@@ -242,7 +350,9 @@ export default function DashboardPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                 <div className="md:col-span-1">
                   <div className="rounded-xl border border-slate-200 p-4 bg-slate-50">
-                    <p className="text-sm font-semibold text-slate-700 mb-3">Profile Photo</p>
+                    <p className="text-sm font-semibold text-slate-700 mb-3">
+                      Profile Photo
+                    </p>
                     <div className="flex flex-col items-center gap-3">
                       <img
                         src={editPhotoPreview || catUser}
@@ -342,22 +452,50 @@ export default function DashboardPage() {
       )}
 
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-10 space-y-6">
-      
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="bg-white rounded-xl border border-purple-100 p-4 shadow-sm">
-            <p className="text-xs uppercase tracking-wide text-slate-500">Total Sit-In Records</p>
-            <p className="mt-1 text-2xl font-bold text-slate-900">{totalSitInRecords}</p>
+            <p className="text-xs uppercase tracking-wide text-slate-500">
+              Total Sit-In Records
+            </p>
+            <p className="mt-1 text-2xl font-bold text-slate-900">
+              {totalSitInRecords}
+            </p>
             <p className="text-sm text-purple-700">Total sit-in records</p>
           </div>
           <div className="bg-white rounded-xl border border-purple-100 p-4 shadow-sm">
-            <p className="text-xs uppercase tracking-wide text-slate-500">Remaining Sessions</p>
-            <p className="mt-1 text-2xl font-bold text-slate-900">{safeRemainingSessions}</p>
+            <p className="text-xs uppercase tracking-wide text-slate-500">
+              Remaining Sessions
+            </p>
+            <p className="mt-1 text-2xl font-bold text-slate-900">
+              {safeRemainingSessions}
+            </p>
             <p className="text-sm text-purple-700">Sessions left this term</p>
           </div>
+          {/* <div className="bg-white rounded-xl border border-purple-100 p-4 shadow-sm"> */}
+          <div
+            className={` rounded-xl border p-4 shadow-sm ${isInSession ? "border-emerald-300 bg-emerald-50" : "border-slate-200 bg-white"}`}
+          >
+            <p className="text-xs uppercase tracking-wide text-slate-500">
+              Session Status
+            </p>
+            <p className="mt-1 text-2xl font-bold text-slate-900">
+              {isInSession ? "Active" : "Idle"}
+            </p>
+            <p
+              className={`text-sm ${isInSession ? "text-emerald-700" : "text-slate-500"}`}
+            >
+              {isInSession
+                ? "You are currently in session"
+                : "You are currently not in session"}
+            </p>
+          </div>
           <div className="bg-white rounded-xl border border-purple-100 p-4 shadow-sm">
-            <p className="text-xs uppercase tracking-wide text-slate-500">Announcements</p>
-            <p className="mt-1 text-2xl font-bold text-slate-900">{visibleAnnouncements.length}</p>
+            <p className="text-xs uppercase tracking-wide text-slate-500">
+              Announcements
+            </p>
+            <p className="mt-1 text-2xl font-bold text-slate-900">
+              {visibleAnnouncements.length}
+            </p>
             <p className="text-sm text-purple-700">Unread updates</p>
           </div>
         </div>
@@ -368,7 +506,11 @@ export default function DashboardPage() {
               <div className="h-20 bg-gradient-to-r from-purple-800 to-purple-700" />
               <div className="px-6 pb-6 -mt-10">
                 <img
-                  src={profile?.profilePicture || profile?.profile_picture || catUser}
+                  src={
+                    profile?.profilePicture ||
+                    profile?.profile_picture ||
+                    catUser
+                  }
                   onError={(e) => {
                     e.currentTarget.src = catUser;
                   }}
@@ -378,8 +520,21 @@ export default function DashboardPage() {
                 <h2 className="mt-3 text-xl font-bold text-slate-900">
                   {profile?.first_name} {profile?.last_name}
                 </h2>
-                <p className="text-sm text-purple-700 font-medium">{profile?.course || "No course"}</p>
-                <p className="text-sm text-slate-500">{profile?.year_level || "No year level"}</p>
+                <p className="text-sm text-purple-700 font-medium">
+                  {profile?.course || "No course"}
+                </p>
+                <p className="text-sm text-slate-500">
+                  {profile?.year_level || "No year level"}
+                </p>
+                <span
+                  className={`inline-flex mt-3 items-center rounded-full px-2.5 py-1 text-xs font-semibold ${
+                    isInSession
+                      ? "bg-emerald-100 text-emerald-700"
+                      : "bg-slate-200 text-slate-700"
+                  }`}
+                >
+                  {isInSession ? "In Session" : "Not In Session"}
+                </span>
 
                 <div className="mt-5 grid grid-cols-2 gap-2">
                   <button
@@ -407,13 +562,18 @@ export default function DashboardPage() {
                 {infoFields.map((field, idx) => {
                   const IconComponent = field.icon;
                   return (
-                    <div key={idx} className="flex items-start gap-3 rounded-lg p-2 hover:bg-slate-50">
+                    <div
+                      key={idx}
+                      className="flex items-start gap-3 rounded-lg p-2 hover:bg-slate-50"
+                    >
                       <div className="p-2 rounded-lg bg-purple-50 text-purple-700">
                         <IconComponent className="w-4 h-4" />
                       </div>
                       <div className="min-w-0">
                         <p className="text-xs text-slate-500">{field.label}</p>
-                        <p className="text-sm font-semibold text-slate-800 break-words">{field.value || "N/A"}</p>
+                        <p className="text-sm font-semibold text-slate-800 break-words">
+                          {field.value || "N/A"}
+                        </p>
                       </div>
                     </div>
                   );
@@ -457,10 +617,16 @@ export default function DashboardPage() {
                             <span className="text-[11px] font-bold px-2 py-1 rounded-full bg-white/80 text-slate-700">
                               {announcement.priority.toUpperCase()}
                             </span>
-                            <span className="text-xs text-slate-500">{announcement.date}</span>
+                            <span className="text-xs text-slate-500">
+                              {announcement.date}
+                            </span>
                           </div>
-                          <h4 className="font-semibold text-slate-900">{announcement.title}</h4>
-                          <p className="text-xs text-slate-600 mt-1">Posted by {announcement.author}</p>
+                          <h4 className="font-semibold text-slate-900">
+                            {announcement.title}
+                          </h4>
+                          <p className="text-xs text-slate-600 mt-1">
+                            Posted by {announcement.author}
+                          </p>
                         </button>
 
                         <button
@@ -474,7 +640,9 @@ export default function DashboardPage() {
 
                       {expandedAnnouncement === announcement.id ? (
                         <div className="mt-3 pt-3 border-t border-slate-200">
-                          <p className="text-sm text-slate-700 leading-relaxed">{announcement.content}</p>
+                          <p className="text-sm text-slate-700 leading-relaxed">
+                            {announcement.content}
+                          </p>
                           <button
                             onClick={() => toggleAnnouncement(announcement.id)}
                             className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-purple-700 hover:text-purple-800"
@@ -496,7 +664,11 @@ export default function DashboardPage() {
                 ) : (
                   <div className="text-center py-10">
                     <Bell className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-                    <p className="text-slate-500">No announcements to display</p>
+                    <p className="text-slate-500">
+                      {announcementsLoading
+                        ? "Loading announcements..."
+                        : "No announcements to display"}
+                    </p>
                   </div>
                 )}
               </div>
@@ -513,11 +685,16 @@ export default function DashboardPage() {
                 {rules.map((rule, idx) => {
                   const IconComponent = rule.icon;
                   return (
-                    <div key={idx} className="flex items-start gap-3 rounded-lg p-3 hover:bg-slate-50">
+                    <div
+                      key={idx}
+                      className="flex items-start gap-3 rounded-lg p-3 hover:bg-slate-50"
+                    >
                       <div className="mt-0.5 p-2 rounded-lg bg-purple-50 text-purple-700">
                         <IconComponent className="w-4 h-4" />
                       </div>
-                      <p className="text-sm text-slate-700 leading-relaxed">{rule.text}</p>
+                      <p className="text-sm text-slate-700 leading-relaxed">
+                        {rule.text}
+                      </p>
                     </div>
                   );
                 })}

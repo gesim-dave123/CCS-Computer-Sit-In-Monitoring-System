@@ -20,7 +20,7 @@ export default function AdminSitInReportsPage() {
 
     try {
       const res = await fetch(
-        "http://localhost:8080/CCS-Computer-Sit-In-Monitoring-System/server/src/adminSitInReports.php",
+        `${import.meta.env.VITE_API_BASE_URL}/adminSitInReports.php`,
       );
       const json = await res.json();
 

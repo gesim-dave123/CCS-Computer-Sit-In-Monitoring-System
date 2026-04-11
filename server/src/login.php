@@ -1,23 +1,16 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 0);
-ini_set('log_errors', 1);
-
 // Get the origin from the request
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 
-// CORS headers (needed for both Apache and PHP built-in server)
+
 $allowed_origins = [
     'http://localhost:5173',
-    'http://localhost:5174',
     'http://127.0.0.1:5173',
-    'http://127.0.0.1:5174',
+    // 'https://future-production-domain.com' // Add this when deploying
 ];
 
-if ($origin && in_array($origin, $allowed_origins, true)) {
-    header("Access-Control-Allow-Origin: {$origin}");
-} else if (preg_match('/^http:\/\/localhost(:\d+)?$/', $origin)) {
-    header("Access-Control-Allow-Origin: {$origin}");
+if (in_array($origin, $allowed_origins, true)) {
+    header("Access-Control-Allow-Origin: $origin");
 }
 
 header('Vary: Origin');
@@ -38,18 +31,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
-require_once '../vendor/autoload.php'; // for JWT and dotenv
-require_once '../config/db_connection.php';
+require_once __DIR__ . '/../vendor/autoload.php'; // for JWT and dotenv
+require_once __DIR__ . '/../config/db_connection.php';
 
 use Firebase\JWT\JWT;
-use Firebase\JWT\Key;
 use Dotenv\Dotenv;
 
-// Load .env variables
-$dotenv = Dotenv::createImmutable(__DIR__ . '/../');
-$dotenv->load();
+// Load .env variables if present.
+if (class_exists(Dotenv::class) && file_exists(__DIR__ . '/../.env')) {
+    $dotenv = Dotenv::createImmutable(__DIR__ . '/../');
+    $dotenv->safeLoad();
+}
 
-$SECRET_KEY = $_ENV['SECRET_KEY'] ?? 'default_secret_key';
+$SECRET_KEY = isset($_ENV['SECRET_KEY']) && trim((string) $_ENV['SECRET_KEY']) !== ''
+    ? (string) $_ENV['SECRET_KEY']
+    : 'default_secret_key';
 
 // Only allow POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -73,7 +69,7 @@ $password = $data['password'];
 
 try {
     // Find user
-    $stmt = $pdo->prepare("SELECT id_number, first_name, last_name, middle_name, course,year_level, address, email,role, profilePicture, remaining_sessions, password FROM users WHERE id_number = ?");
+    $stmt = $pdo->prepare("SELECT id_number, first_name, last_name, middle_name, course, year_level, address, email, role, password FROM users WHERE id_number = ? LIMIT 1");
     $stmt->execute([$idNumber]);
 
     $user = $stmt->fetch();
@@ -94,6 +90,11 @@ try {
 
     // Remove password before sending
     unset($user['password']);
+
+    // Provide safe defaults for optional profile/session fields.
+    $user['role'] = $user['role'] ?? 'student';
+    $user['profilePicture'] = $user['profilePicture'] ?? null;
+    $user['remaining_sessions'] = $user['remaining_sessions'] ?? null;
 
     // ── JWT Token generation ───────────────────────────────
     $issuedAt = time();
@@ -127,10 +128,10 @@ try {
         "user" => $user
     ]);
 
-} catch (PDOException $e) {
+} catch (Throwable $e) {
+    debug_log("Login error: " . $e->getMessage());
     http_response_code(500);
     echo json_encode([
-        "error" => "Server error",
-        "details" => $e->getMessage()
+        "error" => "Server error"
     ]);
 }

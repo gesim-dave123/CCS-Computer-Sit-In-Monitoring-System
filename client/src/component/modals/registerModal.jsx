@@ -46,7 +46,7 @@ export default function RegisterModal({ onClose, onSwitchToLogin }) {
 
     try {
       const res = await fetch(
-        "http://localhost:8080/CCS-Computer-Sit-In-Monitoring-System/server/src/register.php",
+        `${import.meta.env.VITE_API_BASE_URL}/register.php`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -60,14 +60,15 @@ export default function RegisterModal({ onClose, onSwitchToLogin }) {
             email: email,
             address: address,
             password: password,
-            currentEmail: JSON.parse(localStorage.getItem("user") || "null")?.email || null,
+            currentEmail:
+              JSON.parse(localStorage.getItem("user") || "null")?.email || null,
           }),
         },
       );
 
       const json = await res.json(); // Parse BEFORE checking res.ok
 
-       if (!res.ok) {
+      if (!res.ok) {
         setError(json.error || "Registration failed. Please try again.");
         return;
       }
