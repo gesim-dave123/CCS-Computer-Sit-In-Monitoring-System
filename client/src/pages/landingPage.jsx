@@ -5,15 +5,22 @@ import csslogo from "../assets/image/ccslogo.png";
 import DashboardMockup from "../component/dashboardMockupHero";
 import HomePage from "../pages/homePage";
 import Features from "../pages/features";
+import TestimonialsSection from "../component/testimonialsSection";
 import HowItWorks from "../pages/howItWorks";
 import About from "../pages/about";
 import Footer from "../pages/footer";
+import { useEffect } from "react";
 
 
 /* ─── PAGE ─────────────────────────────────────────────── */
 export default function LandingPage() {
+  useEffect(() => {
+    // Force light mode on landing page
+    document.documentElement.classList.remove("dark");
+  }, []);
+
   return (
-    <div className="min-h-screen font-sans overflow-x-hidden scroll-smooth" style={{ background: "#f9f8fc", color: "#1a0a2e" }}>
+    <div className="min-h-screen font-sans overflow-x-hidden scroll-smooth bg-slate-50 text-slate-900">
       <NavigationBar />
 
       {/* Watermark logo */}
@@ -29,6 +36,9 @@ export default function LandingPage() {
       {/* ── FEATURES ─────────────────────────────────────── */}
       <Features />
 
+      {/* ── TESTIMONIALS ─────────────────────────────────── */}
+      <TestimonialsSection />
+
       {/* ── HOW IT WORKS ─────────────────────────────────── */}
       {/* <HowItWorks /> */}
       {/* ── ABOUT ───────────────────────────────────────── */}
@@ -36,7 +46,7 @@ export default function LandingPage() {
 
 
       {/* ── FOOTER ───────────────────────────────────────── */}
-      {/* <Footer /> */}
+      <Footer />
     </div>
   );
 }

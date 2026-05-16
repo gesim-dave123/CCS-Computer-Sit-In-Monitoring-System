@@ -329,35 +329,35 @@ export default function DashboardPage() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-50">
+    <main className="min-h-screen bg-slate-50 dark:bg-slate-950">
       <NavigationBar onEditProfile={openEditModal} />
 
       {isEditModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-3xl bg-white rounded-2xl shadow-xl overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-slate-900">Edit Profile</h2>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-3xl bg-white dark:bg-slate-900 rounded-2xl shadow-xl overflow-hidden border border-slate-200 dark:border-slate-800">
+            <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white">Edit Profile</h2>
               <button
                 onClick={() => setEditModalOpen(false)}
-                className="text-slate-500 hover:text-slate-800"
+                className="text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
             <div className="px-6 py-5 space-y-4">
-              {error && <p className="text-sm text-red-600">{error}</p>}
+              {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                 <div className="md:col-span-1">
-                  <div className="rounded-xl border border-slate-200 p-4 bg-slate-50">
-                    <p className="text-sm font-semibold text-slate-700 mb-3">
+                  <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-4 bg-slate-50 dark:bg-slate-800/50">
+                    <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">
                       Profile Photo
                     </p>
                     <div className="flex flex-col items-center gap-3">
                       <img
                         src={editPhotoPreview || catUser}
                         alt="Profile preview"
-                        className="w-28 h-28 rounded-2xl object-cover border-4 border-white shadow"
+                        className="w-28 h-28 rounded-2xl object-cover border-4 border-white dark:border-slate-700 shadow"
                       />
                       <label className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-purple-600 text-white text-sm font-medium cursor-pointer hover:bg-purple-700">
                         <Camera className="w-4 h-4" />
@@ -369,7 +369,7 @@ export default function DashboardPage() {
                           onChange={handlePhotoChange}
                         />
                       </label>
-                      <p className="text-xs text-slate-500 text-center">
+                      <p className="text-xs text-slate-500 dark:text-slate-400 text-center">
                         JPG, PNG, WEBP only (max 5MB)
                       </p>
                     </div>
@@ -383,42 +383,42 @@ export default function DashboardPage() {
                       value={editFirstName}
                       onChange={(e) => setFirstName(e.target.value)}
                       placeholder="First Name"
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-purple-300 focus:outline-none"
+                      className="w-full px-3 py-2 border dark:border-slate-700 rounded-lg focus:ring-purple-300 dark:focus:ring-purple-900 focus:outline-none dark:bg-slate-950 dark:text-white"
                     />
                     <input
                       type="text"
                       value={editMiddleName}
                       onChange={(e) => setMiddleName(e.target.value)}
                       placeholder="Middle Name"
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-purple-300 focus:outline-none"
+                      className="w-full px-3 py-2 border dark:border-slate-700 rounded-lg focus:ring-purple-300 dark:focus:ring-purple-900 focus:outline-none dark:bg-slate-950 dark:text-white"
                     />
                     <input
                       type="text"
                       value={editLastName}
                       onChange={(e) => setLastName(e.target.value)}
                       placeholder="Last Name"
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-purple-300 focus:outline-none"
+                      className="w-full px-3 py-2 border dark:border-slate-700 rounded-lg focus:ring-purple-300 dark:focus:ring-purple-900 focus:outline-none dark:bg-slate-950 dark:text-white"
                     />
                     <input
                       type="text"
                       value={editCourse}
                       onChange={(e) => setCourse(e.target.value)}
                       placeholder="Course"
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-purple-300 focus:outline-none"
+                      className="w-full px-3 py-2 border dark:border-slate-700 rounded-lg focus:ring-purple-300 dark:focus:ring-purple-900 focus:outline-none dark:bg-slate-950 dark:text-white"
                     />
                     <input
                       type="text"
                       value={editYearLevel}
                       onChange={(e) => setYearLevel(e.target.value)}
                       placeholder="Year Level"
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-purple-300 focus:outline-none"
+                      className="w-full px-3 py-2 border dark:border-slate-700 rounded-lg focus:ring-purple-300 dark:focus:ring-purple-900 focus:outline-none dark:bg-slate-950 dark:text-white"
                     />
                     <input
                       type="email"
                       value={editEmail}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="Email"
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-purple-300 focus:outline-none"
+                      className="w-full px-3 py-2 border dark:border-slate-700 rounded-lg focus:ring-purple-300 dark:focus:ring-purple-900 focus:outline-none dark:bg-slate-950 dark:text-white"
                     />
                   </div>
 
@@ -426,16 +426,16 @@ export default function DashboardPage() {
                     value={editAddress}
                     onChange={(e) => setAddress(e.target.value)}
                     placeholder="Address"
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-purple-300 focus:outline-none"
+                    className="w-full px-3 py-2 border dark:border-slate-700 rounded-lg focus:ring-purple-300 dark:focus:ring-purple-900 focus:outline-none dark:bg-slate-950 dark:text-white"
                     rows={4}
                   />
                 </div>
               </div>
             </div>
-            <div className="px-6 py-4 border-t border-slate-200 flex justify-end gap-2">
+            <div className="px-6 py-4 border-t border-slate-200 dark:border-slate-800 flex justify-end gap-2">
               <button
                 onClick={() => setEditModalOpen(false)}
-                className="px-4 py-2 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100"
+                className="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
               >
                 Cancel
               </button>
@@ -453,56 +453,55 @@ export default function DashboardPage() {
 
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-10 space-y-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-white rounded-xl border border-purple-100 p-4 shadow-sm">
-            <p className="text-xs uppercase tracking-wide text-slate-500">
+          <div className="bg-white dark:bg-slate-900 rounded-xl border border-purple-100 dark:border-purple-900/30 p-4 shadow-sm">
+            <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
               Total Sit-In Records
             </p>
-            <p className="mt-1 text-2xl font-bold text-slate-900">
+            <p className="mt-1 text-2xl font-bold text-slate-900 dark:text-white">
               {totalSitInRecords}
             </p>
-            <p className="text-sm text-purple-700">Total sit-in records</p>
+            <p className="text-sm text-purple-700 dark:text-purple-400">Total sit-in records</p>
           </div>
-          <div className="bg-white rounded-xl border border-purple-100 p-4 shadow-sm">
-            <p className="text-xs uppercase tracking-wide text-slate-500">
+          <div className="bg-white dark:bg-slate-900 rounded-xl border border-purple-100 dark:border-purple-900/30 p-4 shadow-sm">
+            <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
               Remaining Sessions
             </p>
-            <p className="mt-1 text-2xl font-bold text-slate-900">
+            <p className="mt-1 text-2xl font-bold text-slate-900 dark:text-white">
               {safeRemainingSessions}
             </p>
-            <p className="text-sm text-purple-700">Sessions left this term</p>
+            <p className="text-sm text-purple-700 dark:text-purple-400">Sessions left this term</p>
           </div>
-          {/* <div className="bg-white rounded-xl border border-purple-100 p-4 shadow-sm"> */}
           <div
-            className={` rounded-xl border p-4 shadow-sm ${isInSession ? "border-emerald-300 bg-emerald-50" : "border-slate-200 bg-white"}`}
+            className={` rounded-xl border p-4 shadow-sm ${isInSession ? "border-emerald-300 bg-emerald-50 dark:border-emerald-900/50 dark:bg-emerald-950/20" : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900"}`}
           >
-            <p className="text-xs uppercase tracking-wide text-slate-500">
+            <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
               Session Status
             </p>
-            <p className="mt-1 text-2xl font-bold text-slate-900">
+            <p className="mt-1 text-2xl font-bold text-slate-900 dark:text-white">
               {isInSession ? "Active" : "Idle"}
             </p>
             <p
-              className={`text-sm ${isInSession ? "text-emerald-700" : "text-slate-500"}`}
+              className={`text-sm ${isInSession ? "text-emerald-700 dark:text-emerald-400" : "text-slate-500 dark:text-slate-400"}`}
             >
               {isInSession
                 ? "You are currently in session"
                 : "You are currently not in session"}
             </p>
           </div>
-          <div className="bg-white rounded-xl border border-purple-100 p-4 shadow-sm">
-            <p className="text-xs uppercase tracking-wide text-slate-500">
+          <div className="bg-white dark:bg-slate-900 rounded-xl border border-purple-100 dark:border-purple-900/30 p-4 shadow-sm">
+            <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
               Announcements
             </p>
-            <p className="mt-1 text-2xl font-bold text-slate-900">
+            <p className="mt-1 text-2xl font-bold text-slate-900 dark:text-white">
               {visibleAnnouncements.length}
             </p>
-            <p className="text-sm text-purple-700">Unread updates</p>
+            <p className="text-sm text-purple-700 dark:text-purple-400">Unread updates</p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <aside className="lg:col-span-4 space-y-6">
-            <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-200">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-800">
               <div className="h-20 bg-gradient-to-r from-purple-800 to-purple-700" />
               <div className="px-6 pb-6 -mt-10">
                 <img
@@ -515,22 +514,22 @@ export default function DashboardPage() {
                     e.currentTarget.src = catUser;
                   }}
                   alt="Student profile"
-                  className="w-20 h-20 rounded-2xl border-4 border-white object-cover shadow-md"
+                  className="w-20 h-20 rounded-2xl border-4 border-white dark:border-slate-800 object-cover shadow-md"
                 />
-                <h2 className="mt-3 text-xl font-bold text-slate-900">
+                <h2 className="mt-3 text-xl font-bold text-slate-900 dark:text-white">
                   {profile?.first_name} {profile?.last_name}
                 </h2>
-                <p className="text-sm text-purple-700 font-medium">
+                <p className="text-sm text-purple-700 dark:text-purple-400 font-medium">
                   {profile?.course || "No course"}
                 </p>
-                <p className="text-sm text-slate-500">
+                <p className="text-sm text-slate-500 dark:text-slate-400">
                   {profile?.year_level || "No year level"}
                 </p>
                 <span
                   className={`inline-flex mt-3 items-center rounded-full px-2.5 py-1 text-xs font-semibold ${
                     isInSession
-                      ? "bg-emerald-100 text-emerald-700"
-                      : "bg-slate-200 text-slate-700"
+                      ? "bg-emerald-100 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400"
+                      : "bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-400"
                   }`}
                 >
                   {isInSession ? "In Session" : "Not In Session"}
@@ -539,13 +538,13 @@ export default function DashboardPage() {
                 <div className="mt-5 grid grid-cols-2 gap-2">
                   <button
                     onClick={openEditModal}
-                    className="px-3 py-2 rounded-lg bg-purple-600 text-white text-sm font-medium hover:bg-purple-700"
+                    className="px-3 py-2 rounded-lg bg-purple-600 text-white text-sm font-medium hover:bg-purple-700 shadow-sm"
                   >
                     Edit Profile
                   </button>
                   <button
                     onClick={logout}
-                    className="px-3 py-2 rounded-lg border border-slate-300 text-slate-700 text-sm font-medium hover:bg-slate-50"
+                    className="px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
                   >
                     Logout
                   </button>
@@ -553,9 +552,9 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
-              <h3 className="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
-                <User className="w-4 h-4 text-purple-600" />
+            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-5">
+              <h3 className="text-base font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                <User className="w-4 h-4 text-purple-600 dark:text-purple-400" />
                 Student Information
               </h3>
               <div className="space-y-3">
@@ -564,14 +563,14 @@ export default function DashboardPage() {
                   return (
                     <div
                       key={idx}
-                      className="flex items-start gap-3 rounded-lg p-2 hover:bg-slate-50"
+                      className="flex items-start gap-3 rounded-lg p-2 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
                     >
-                      <div className="p-2 rounded-lg bg-purple-50 text-purple-700">
+                      <div className="p-2 rounded-lg bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400">
                         <IconComponent className="w-4 h-4" />
                       </div>
                       <div className="min-w-0">
-                        <p className="text-xs text-slate-500">{field.label}</p>
-                        <p className="text-sm font-semibold text-slate-800 break-words">
+                        <p className="text-xs text-slate-500 dark:text-slate-400">{field.label}</p>
+                        <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 break-words">
                           {field.value || "N/A"}
                         </p>
                       </div>
@@ -583,13 +582,13 @@ export default function DashboardPage() {
           </aside>
 
           <div className="lg:col-span-8 space-y-6">
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-              <div className="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
-                <h3 className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
-                  <Bell className="w-5 h-5 text-purple-600" />
+            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
+              <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <Bell className="w-5 h-5 text-purple-600 dark:text-purple-400" />
                   Announcements
                 </h3>
-                <span className="text-xs px-2.5 py-1 rounded-full bg-purple-100 text-purple-700 font-semibold">
+                <span className="text-xs px-2.5 py-1 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 font-semibold">
                   {visibleAnnouncements.length} active
                 </span>
               </div>
@@ -601,10 +600,10 @@ export default function DashboardPage() {
                       key={announcement.id}
                       className={`rounded-xl border p-4 transition-all ${
                         announcement.priority === "high"
-                          ? "border-red-200 bg-red-50/70"
+                          ? "border-red-400 dark:border-red-900/50 bg-red-50 dark:bg-red-950/20"
                           : announcement.priority === "medium"
-                            ? "border-yellow-200 bg-yellow-50/70"
-                            : "border-slate-200 bg-slate-50"
+                            ? "border-amber-400 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-950/20"
+                            : "border-slate-300 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50"
                       }`}
                     >
                       <div className="flex items-start justify-between gap-3">
@@ -614,38 +613,38 @@ export default function DashboardPage() {
                           className="text-left flex-1"
                         >
                           <div className="flex items-center gap-2 mb-2">
-                            <span className="text-[11px] font-bold px-2 py-1 rounded-full bg-white/80 text-slate-700">
+                            <span className="text-[11px] font-bold px-2 py-1 rounded-full bg-white/80 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300">
                               {announcement.priority.toUpperCase()}
                             </span>
-                            <span className="text-xs text-slate-500">
+                            <span className="text-xs text-slate-500 dark:text-slate-400">
                               {announcement.date}
                             </span>
                           </div>
-                          <h4 className="font-semibold text-slate-900">
+                          <h4 className="font-semibold text-slate-900 dark:text-white">
                             {announcement.title}
                           </h4>
-                          <p className="text-xs text-slate-600 mt-1">
+                          <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
                             Posted by {announcement.author}
                           </p>
                         </button>
 
                         <button
                           onClick={() => dismissAnnouncement(announcement.id)}
-                          className="p-1.5 rounded-md hover:bg-white"
+                          className="p-1.5 rounded-md hover:bg-white dark:hover:bg-slate-800 transition-colors"
                           title="Dismiss"
                         >
-                          <X className="w-4 h-4 text-slate-500" />
+                          <X className="w-4 h-4 text-slate-500 dark:text-slate-400" />
                         </button>
                       </div>
 
                       {expandedAnnouncement === announcement.id ? (
-                        <div className="mt-3 pt-3 border-t border-slate-200">
-                          <p className="text-sm text-slate-700 leading-relaxed">
+                        <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-800">
+                          <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
                             {announcement.content}
                           </p>
                           <button
                             onClick={() => toggleAnnouncement(announcement.id)}
-                            className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-purple-700 hover:text-purple-800"
+                            className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-purple-700 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300"
                           >
                             Collapse
                           </button>
@@ -653,7 +652,7 @@ export default function DashboardPage() {
                       ) : (
                         <button
                           onClick={() => toggleAnnouncement(announcement.id)}
-                          className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-purple-700 hover:text-purple-800"
+                          className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-purple-700 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300"
                         >
                           Read more
                           <ChevronRight className="w-4 h-4" />
@@ -663,8 +662,8 @@ export default function DashboardPage() {
                   ))
                 ) : (
                   <div className="text-center py-10">
-                    <Bell className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-                    <p className="text-slate-500">
+                    <Bell className="w-10 h-10 text-slate-300 dark:text-slate-700 mx-auto mb-3" />
+                    <p className="text-slate-500 dark:text-slate-400">
                       {announcementsLoading
                         ? "Loading announcements..."
                         : "No announcements to display"}
@@ -674,10 +673,10 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-              <div className="px-5 py-4 border-b border-slate-200">
-                <h3 className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-purple-600" />
+            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
+              <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-800">
+                <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-purple-600 dark:text-purple-400" />
                   Lab Rules & Regulations
                 </h3>
               </div>
@@ -687,12 +686,12 @@ export default function DashboardPage() {
                   return (
                     <div
                       key={idx}
-                      className="flex items-start gap-3 rounded-lg p-3 hover:bg-slate-50"
+                      className="flex items-start gap-3 rounded-lg p-3 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
                     >
-                      <div className="mt-0.5 p-2 rounded-lg bg-purple-50 text-purple-700">
+                      <div className="mt-0.5 p-2 rounded-lg bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400">
                         <IconComponent className="w-4 h-4" />
                       </div>
-                      <p className="text-sm text-slate-700 leading-relaxed">
+                      <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
                         {rule.text}
                       </p>
                     </div>

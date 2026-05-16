@@ -1,14 +1,12 @@
 import { useEffect, useState } from "react";
-import { Navigate } from "react-router-dom";
 import AdminNavigationBar from "../component/adminNavigationBar";
+
 
 export default function AdminSitInRecordsPage() {
   const user = JSON.parse(localStorage.getItem("user") || "null");
-  if (!user || user.role !== "admin") {
-    return <Navigate to="/dashboard" replace />;
-  }
 
   const [records, setRecords] = useState([]);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 

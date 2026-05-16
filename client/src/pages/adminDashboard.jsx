@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { Navigate } from "react-router-dom";
 import AdminNavigationBar from "../component/adminNavigationBar";
-import { Bell, Users, Monitor, BarChart3 } from "lucide-react";
-import { Pie, Bar } from "react-chartjs-2";
+import { Bell, Users, Monitor, BarChart3, ChevronLeft, ChevronRight, TrendingUp } from "lucide-react";
+
+import { Pie, Bar, Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
   ArcElement,
@@ -11,6 +11,9 @@ import {
   CategoryScale,
   LinearScale,
   BarElement,
+  LineElement,
+  PointElement,
+  Filler,
 } from "chart.js";
 
 ChartJS.register(
@@ -20,15 +23,16 @@ ChartJS.register(
   CategoryScale,
   LinearScale,
   BarElement,
+  LineElement,
+  PointElement,
+  Filler,
 );
 
 export default function AdminDashboard() {
   const user = JSON.parse(localStorage.getItem("user") || "null");
-  if (!user || user.role !== "admin") {
-    return <Navigate to="/dashboard" replace />;
-  }
 
   const [stats, setStats] = useState({
+
     registeredStudents: 0,
     currentSitIns: 0,
     totalSitIns: 0,
@@ -37,6 +41,12 @@ export default function AdminDashboard() {
     leaderboard: [],
   });
   const [statsLoading, setStatsLoading] = useState(false);
+
+  // ── Weekly Analytics State ──
+  const [weekStart, setWeekStart] = useState("");
+  const [weekEnd, setWeekEnd] = useState("");
+  const [weeklyData, setWeeklyData] = useState([]);
+  const [weeklyLoading, setWeeklyLoading] = useState(false);
 
   const fetchStats = async () => {
     setStatsLoading(true);
@@ -60,8 +70,31 @@ export default function AdminDashboard() {
     }
   };
 
+  const fetchWeeklyAnalytics = async (ws) => {
+    setWeeklyLoading(true);
+    try {
+      const params = ws ? `?week_start=${ws}` : "";
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/analytics.php${params}`);
+      const json = await res.json();
+      if (res.ok) {
+        setWeekStart(json.week_start || "");
+        setWeekEnd(json.week_end || "");
+        setWeeklyData(json.data || []);
+      }
+    } catch {} finally { setWeeklyLoading(false); }
+  };
+
+  const navigateWeek = (dir) => {
+    if (!weekStart) return;
+    const d = new Date(weekStart + "T00:00:00");
+    d.setDate(d.getDate() + (dir === "prev" ? -7 : 7));
+    const iso = d.toISOString().slice(0, 10);
+    fetchWeeklyAnalytics(iso);
+  };
+
   useEffect(() => {
     fetchStats();
+    fetchWeeklyAnalytics();
   }, []);
 
   const hasPurposeData = stats.purposes.length > 0;
@@ -339,6 +372,84 @@ export default function AdminDashboard() {
                   )}
                 </div>
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── Weekly Sit-In Trends (Feature 4) ── */}
+        <section className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
+            <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-purple-600" />
+              Weekly Sit-In Trends
+            </h2>
+            <div className="flex items-center gap-2">
+              <button onClick={() => navigateWeek("prev")} className="p-1.5 rounded-lg border border-slate-300 hover:bg-slate-100">
+                <ChevronLeft className="w-4 h-4 text-slate-600" />
+              </button>
+              <span className="text-sm text-slate-600 font-medium min-w-[180px] text-center">
+                {weekStart && weekEnd ? `${weekStart} — ${weekEnd}` : "Loading..."}
+              </span>
+              <button onClick={() => navigateWeek("next")} className="p-1.5 rounded-lg border border-slate-300 hover:bg-slate-100">
+                <ChevronRight className="w-4 h-4 text-slate-600" />
+              </button>
+            </div>
+          </div>
+          <div className="p-5">
+            {weeklyLoading ? (
+              <div className="h-72 flex items-center justify-center">
+                <div className="w-7 h-7 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin" />
+              </div>
+            ) : (
+              <div className="h-72">
+                <Line
+                  data={{
+                    labels: weeklyData.map(d => d.day.slice(0, 3)),
+                    datasets: [{
+                      label: "Sessions",
+                      data: weeklyData.map(d => d.session_count),
+                      borderColor: "#5428a8",
+                      backgroundColor: "rgba(84, 40, 168, 0.1)",
+                      fill: true,
+                      tension: 0.4,
+                      pointBackgroundColor: "#5428a8",
+                      pointBorderColor: "#fff",
+                      pointBorderWidth: 2,
+                      pointRadius: 5,
+                      pointHoverRadius: 7,
+                    }],
+                  }}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                      legend: { display: false },
+                      tooltip: {
+                        backgroundColor: "rgba(15,23,42,0.9)",
+                        padding: 10,
+                        cornerRadius: 8,
+                        callbacks: {
+                          title: (ctx) => weeklyData[ctx[0].dataIndex]?.day || "",
+                          label: (ctx) => `${ctx.parsed.y} session${ctx.parsed.y !== 1 ? "s" : ""}`,
+                          afterLabel: (ctx) => weeklyData[ctx.dataIndex]?.date || "",
+                        },
+                      },
+                    },
+                    scales: {
+                      y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: "rgba(203,213,225,0.3)" } },
+                      x: { grid: { display: false } },
+                    },
+                  }}
+                />
+              </div>
+            )}
+            <div className="mt-3 grid grid-cols-7 gap-2">
+              {weeklyData.map(d => (
+                <div key={d.date} className="text-center">
+                  <p className="text-xs text-slate-500">{d.day.slice(0, 3)}</p>
+                  <p className="text-lg font-bold text-slate-900">{d.session_count}</p>
+                </div>
+              ))}
             </div>
           </div>
         </section>

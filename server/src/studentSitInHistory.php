@@ -59,7 +59,7 @@ try {
                 s.id_number,
                 s.name,
                 s.purpose,
-                s.lab,
+                COALESCE(lb.lab_name, s.lab) AS lab,
                 s.status,
                 s.started_at,
                 s.ended_at,
@@ -72,6 +72,7 @@ try {
                 f.responded_at AS feedback_responded_at,
                 f.created_at AS feedback_created_at
              FROM sit_in_sessions s
+             LEFT JOIN laboratories lb ON s.lab_id = lb.lab_id
              LEFT JOIN feedback f
                 ON f.sit_in_id = s.sitIn_id
                AND f.user_id = ?
@@ -89,7 +90,7 @@ try {
                 s.id_number,
                 s.name,
                 s.purpose,
-                s.lab,
+                COALESCE(lb.lab_name, s.lab) AS lab,
                 s.status,
                 s.started_at,
                 s.ended_at,
@@ -102,6 +103,7 @@ try {
                 f.responded_at AS feedback_responded_at,
                 f.created_at AS feedback_created_at
              FROM sit_in_sessions s
+             LEFT JOIN laboratories lb ON s.lab_id = lb.lab_id
              LEFT JOIN feedback f
                 ON f.sit_in_id = s.sitIn_id
              WHERE s.id_number = ?

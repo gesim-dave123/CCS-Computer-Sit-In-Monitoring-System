@@ -34,18 +34,30 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 
 try {
     $currentStmt = $pdo->query(
-        "SELECT sitIn_id, id_number, name, purpose, lab, status, started_at, ended_at
-         FROM sit_in_sessions
-         WHERE status = 'in_session'
-         ORDER BY started_at DESC"
+        "SELECT s.sitIn_id, s.id_number,
+                COALESCE(CONCAT(u.first_name, ' ', u.last_name), s.name) AS name,
+                s.purpose,
+                COALESCE(l.lab_name, s.lab) AS lab,
+                s.status, s.started_at, s.ended_at
+         FROM sit_in_sessions s
+         LEFT JOIN users u ON s.id_number = u.id_number
+         LEFT JOIN laboratories l ON s.lab_id = l.lab_id
+         WHERE s.status = 'in_session'
+         ORDER BY s.started_at DESC"
     );
     $currentSessions = $currentStmt->fetchAll();
 
     $endedStmt = $pdo->query(
-        "SELECT sitIn_id, id_number, name, purpose, lab, status, started_at, ended_at
-         FROM sit_in_sessions
-         WHERE status = 'ended'
-         ORDER BY ended_at DESC
+        "SELECT s.sitIn_id, s.id_number,
+                COALESCE(CONCAT(u.first_name, ' ', u.last_name), s.name) AS name,
+                s.purpose,
+                COALESCE(l.lab_name, s.lab) AS lab,
+                s.status, s.started_at, s.ended_at
+         FROM sit_in_sessions s
+         LEFT JOIN users u ON s.id_number = u.id_number
+         LEFT JOIN laboratories l ON s.lab_id = l.lab_id
+         WHERE s.status = 'ended'
+         ORDER BY s.ended_at DESC
          LIMIT 100"
     );
     $endedSessions = $endedStmt->fetchAll();

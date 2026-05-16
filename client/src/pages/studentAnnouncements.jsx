@@ -101,9 +101,11 @@ export default function StudentAnnouncementsPage() {
   }, [announcements, query, typeFilter, priorityFilter]);
 
   const cardClassByPriority = (priority) => {
-    if (priority === "high") return "border-red-200 bg-red-50/70";
-    if (priority === "medium") return "border-amber-200 bg-amber-50/70";
-    return "border-slate-200 bg-slate-50";
+    if (priority === "high")
+      return "border-red-400 dark:border-red-900/50 bg-red-50 dark:bg-red-950/20";
+    if (priority === "medium")
+      return "border-amber-400 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-950/20";
+    return "border-slate-300 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50";
   };
 
   const truncateContent = (value, maxLength = 220) => {
@@ -113,18 +115,18 @@ export default function StudentAnnouncementsPage() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-50">
+    <main className="min-h-screen bg-slate-50 dark:bg-slate-950">
       <NavigationBar />
 
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-10 space-y-6">
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-          <h1 className="text-2xl font-bold text-slate-900">Announcements</h1>
-          <p className="text-sm text-slate-600 mt-1">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-6">
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Announcements</h1>
+          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
             Search and filter announcements by type and priority.
           </p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-5">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-4 sm:p-5">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <label className="relative block md:col-span-1">
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -133,14 +135,14 @@ export default function StudentAnnouncementsPage() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search title, content, or author"
-                className="w-full border border-slate-300 rounded-lg pl-9 pr-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300"
+                className="w-full border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 rounded-lg pl-9 pr-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300 dark:focus:ring-purple-900 text-slate-900 dark:text-white"
               />
             </label>
 
             <select
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
-              className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300"
+              className="w-full border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300 dark:focus:ring-purple-900 text-slate-900 dark:text-white"
             >
               <option value="all">All Types</option>
               <option value="general">General</option>
@@ -152,7 +154,7 @@ export default function StudentAnnouncementsPage() {
             <select
               value={priorityFilter}
               onChange={(e) => setPriorityFilter(e.target.value)}
-              className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300"
+              className="w-full border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300 dark:focus:ring-purple-900 text-slate-900 dark:text-white"
             >
               <option value="all">All Priorities</option>
               <option value="high">High</option>
@@ -162,7 +164,7 @@ export default function StudentAnnouncementsPage() {
           </div>
 
           <div className="mt-3 flex items-center justify-between">
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-500 dark:text-slate-400">
               Showing {filteredAnnouncements.length} of {announcements.length}{" "}
               announcements
             </p>
@@ -170,28 +172,28 @@ export default function StudentAnnouncementsPage() {
               type="button"
               onClick={fetchAnnouncements}
               disabled={loading}
-              className="text-xs px-2.5 py-1.5 rounded-md bg-purple-100 text-purple-700 hover:bg-purple-200 disabled:opacity-60"
+              className="text-xs px-2.5 py-1.5 rounded-md bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 hover:bg-purple-200 dark:hover:bg-purple-900/50 disabled:opacity-60 transition-colors"
             >
               {loading ? "Refreshing..." : "Refresh"}
             </button>
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-          <div className="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
-            <h3 className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
-              <Megaphone className="w-5 h-5 text-purple-600" />
+        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
+          <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+            <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <Megaphone className="w-5 h-5 text-purple-600 dark:text-purple-400" />
               Announcement Feed
             </h3>
           </div>
 
           <div className="p-4 sm:p-5 space-y-3">
-            {error && <p className="text-sm text-red-600">{error}</p>}
+            {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
 
             {loading && announcements.length === 0 ? (
-              <p className="text-sm text-slate-500">Loading announcements...</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400">Loading announcements...</p>
             ) : filteredAnnouncements.length === 0 ? (
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-slate-500 dark:text-slate-400">
                 No announcements match the selected filters.
               </p>
             ) : (
@@ -202,26 +204,26 @@ export default function StudentAnnouncementsPage() {
                   className={`rounded-xl border p-4 ${cardClassByPriority(item.priority)} ${
                     highlightedAnnouncementId > 0 &&
                     item.announcement_id === highlightedAnnouncementId
-                      ? "ring-2 ring-purple-400"
+                      ? "ring-2 ring-purple-400 dark:ring-purple-600 shadow-lg shadow-purple-950/20"
                       : ""
                   }`}
                 >
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
-                      <h4 className="font-semibold text-slate-900">
+                      <h4 className="font-semibold text-slate-900 dark:text-white">
                         {item.title}
                       </h4>
                       <div className="mt-2 flex flex-wrap items-center gap-2">
-                        <span className="text-[11px] font-bold px-2 py-1 rounded-full bg-white/80 text-slate-700 uppercase">
+                        <span className="text-[11px] font-bold px-2 py-1 rounded-full bg-white/80 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 uppercase">
                           {item.type || "general"}
                         </span>
-                        <span className="text-[11px] font-bold px-2 py-1 rounded-full bg-white/80 text-slate-700 uppercase">
+                        <span className="text-[11px] font-bold px-2 py-1 rounded-full bg-white/80 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 uppercase">
                           {item.priority || "low"}
                         </span>
                       </div>
                     </div>
 
-                    <div className="text-xs text-slate-500 space-y-1">
+                    <div className="text-xs text-slate-500 dark:text-slate-400 space-y-1">
                       <p className="inline-flex items-center gap-1">
                         <Calendar className="w-3 h-3" />
                         {formatDateTime(item.publish_at || item.created_at)}
@@ -233,7 +235,7 @@ export default function StudentAnnouncementsPage() {
                     </div>
                   </div>
 
-                  <p className="text-sm text-slate-700 mt-3 leading-relaxed whitespace-pre-wrap">
+                  <p className="text-sm text-slate-700 dark:text-slate-300 mt-3 leading-relaxed whitespace-pre-wrap">
                     {truncateContent(item.content)}
                   </p>
                 </article>

@@ -35,7 +35,7 @@ export default function HomePage() {
           </h1>
 
           {/* Sub-text */}
-          <p className="fade-up-4 text-lg font-medium leading-relaxed mb-8" style={{ color: "#6b7280", maxWidth: 480 }}>
+          <p className="fade-up-4 text-lg font-medium leading-relaxed mb-8 text-slate-500 max-w-[480px]">
             A streamlined system for tracking computer lab usage
             from student check-in to real-time occupancy all in one
             clean, modern dashboard.

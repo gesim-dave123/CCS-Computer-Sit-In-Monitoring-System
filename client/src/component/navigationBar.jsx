@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import ccslogo from "../assets/image/ccslogo.png";
 import { useNavigate } from "react-router-dom";
+import { Moon, Sun } from "lucide-react";
 
 const NAV_LINKS = [
   { label: "Home", link: "#home" },
@@ -8,16 +9,12 @@ const NAV_LINKS = [
   { label: "About", link: "#features" },
   
 ];
-  const logout = () => {
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("user");
-    navigate("/login");
-  };
 
 export default function NavigationBar() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
+
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
@@ -25,6 +22,12 @@ export default function NavigationBar() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const logout = () => {
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("user");
+    navigate("/login");
+  };
 
   return (
     <nav
@@ -92,24 +95,26 @@ export default function NavigationBar() {
     </button>
   </div>
 </div>
-        <button
-          className="md:hidden lg:hidden text-stone-600"
-          onClick={() => setMenuOpen(!menuOpen)}
-        >
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            className="w-5 h-5"
+        <div className="md:hidden lg:hidden flex items-center gap-3">
+          <button
+            className="text-stone-600"
+            onClick={() => setMenuOpen(!menuOpen)}
           >
-            {menuOpen ? (
-              <path strokeLinecap="round" d="M6 18L18 6M6 6l12 12" />
-            ) : (
-              <path strokeLinecap="round" d="M4 6h16M4 12h16M4 18h16" />
-            )}
-          </svg>
-        </button>
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              className="w-5 h-5"
+            >
+              {menuOpen ? (
+                <path strokeLinecap="round" d="M6 18L18 6M6 6l12 12" />
+              ) : (
+                <path strokeLinecap="round" d="M4 6h16M4 12h16M4 18h16" />
+              )}
+            </svg>
+          </button>
+        </div>
       </div>
 
       {menuOpen && (
@@ -124,14 +129,14 @@ export default function NavigationBar() {
               {link.label}
             </a>
           ))}
-          <div className="flex gap-3 mt-3">
-            <button className="btn-primary text-sm text-white px-4 py-2 rounded-full ">
+          <div className="flex flex-col gap-3 mt-3">
+            <button className="btn-primary text-sm text-white px-4 py-2 rounded-full w-full">
               Log In
             </button>
-
           </div>
         </div>
       )}
     </nav>
   );
 }
+

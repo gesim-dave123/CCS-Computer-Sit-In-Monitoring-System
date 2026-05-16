@@ -40,20 +40,26 @@ if (!is_array($data)) {
 }
 
 $idNumber = trim($data['id_number'] ?? '');
-$name = trim($data['name'] ?? '');
 $purpose = trim($data['purpose'] ?? '');
-$lab = trim($data['lab'] ?? '');
+$labId = (int)($data['lab_id'] ?? 0);
+$labText = trim($data['lab'] ?? ''); // legacy fallback
 
-if ($idNumber === '' || $name === '' || $purpose === '' || $lab === '') {
+if ($idNumber === '' || $purpose === '') {
     http_response_code(422);
-    echo json_encode(["error" => "ID number, name, purpose, and lab are required"]);
+    echo json_encode(["error" => "ID number and purpose are required"]);
+    exit();
+}
+
+if ($labId <= 0 && $labText === '') {
+    http_response_code(422);
+    echo json_encode(["error" => "Lab is required"]);
     exit();
 }
 
 try {
     $pdo->beginTransaction();
 
-    $userStmt = $pdo->prepare("SELECT id, remaining_sessions, used_session, is_in_session FROM users WHERE id_number = ? AND role = 'student' LIMIT 1 FOR UPDATE");
+    $userStmt = $pdo->prepare("SELECT id, first_name, last_name, remaining_sessions, used_session, is_in_session FROM users WHERE id_number = ? AND role = 'student' LIMIT 1 FOR UPDATE");
     $userStmt->execute([$idNumber]);
     $user = $userStmt->fetch();
 
@@ -63,6 +69,21 @@ try {
         echo json_encode(["error" => "Student not found"]);
         exit();
     }
+
+    $name = trim($user['first_name'] . ' ' . $user['last_name']);
+
+    // Resolve lab
+    if ($labId > 0) {
+        $labStmt = $pdo->prepare("SELECT lab_id, lab_name FROM laboratories WHERE lab_id = ? LIMIT 1");
+        $labStmt->execute([$labId]);
+        $labRow = $labStmt->fetch();
+    } else {
+        $labStmt = $pdo->prepare("SELECT lab_id, lab_name FROM laboratories WHERE lab_name = ? LIMIT 1");
+        $labStmt->execute([$labText]);
+        $labRow = $labStmt->fetch();
+    }
+    $resolvedLabId = $labRow ? (int)$labRow['lab_id'] : null;
+    $lab = $labRow ? $labRow['lab_name'] : ($labText ?: 'Unknown');
 
     if ((int)$user['is_in_session'] === 1) {
         $pdo->rollBack();
@@ -78,8 +99,8 @@ try {
         exit();
     }
 
-    $insertStmt = $pdo->prepare("INSERT INTO sit_in_sessions (id_number, name, purpose, lab, status) VALUES (?, ?, ?, ?, 'in_session')");
-    $insertStmt->execute([$idNumber, $name, $purpose, $lab]);
+    $insertStmt = $pdo->prepare("INSERT INTO sit_in_sessions (id_number, name, purpose, lab, lab_id, status) VALUES (?, ?, ?, ?, ?, 'in_session')");
+    $insertStmt->execute([$idNumber, $name, $purpose, $lab, $resolvedLabId]);
     $sitInId = (int)$pdo->lastInsertId();
 
     $updateStmt = $pdo->prepare("UPDATE users SET is_in_session = 1 WHERE id = ?");

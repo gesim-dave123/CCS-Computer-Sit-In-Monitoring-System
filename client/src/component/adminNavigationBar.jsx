@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import ccslogo from "../assets/image/ccslogo.png";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
@@ -13,6 +13,10 @@ import {
   MessageSquare,
   CalendarCheck2,
   LogOut,
+  Cpu,
+  Download,
+  Moon,
+  Sun,
 } from "lucide-react";
 
 const NAV_LINKS = [
@@ -36,14 +40,62 @@ const NAV_LINKS = [
     ],
   },
   { label: "Announcements", icon: Bell, path: "/admin/announcements" },
-  { label: "Feedback Reports", icon: MessageSquare },
-  { label: "Reservations", icon: CalendarCheck2 },
+  { label: "Labs & Software", icon: Cpu, path: "/admin/labs-software" },
+  { label: "Testimonials", icon: MessageSquare, path: "/admin/testimonials" },
+  { label: "Reports", icon: Download, path: "/admin/reports" },
+  {
+    label: "Reservations",
+    icon: CalendarCheck2,
+    path: "/admin/reservations",
+    badgeKey: "reservations",
+  },
 ];
 
 export default function AdminNavigationBar() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [pendingReservations, setPendingReservations] = useState(0);
+  const [theme, setTheme] = useState(() => {
+    const stored = localStorage.getItem("theme");
+    if (stored === "dark" || stored === "light") return stored;
+    if (
+      window.matchMedia &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches
+    ) {
+      return "dark";
+    }
+    return "light";
+  });
   const navigate = useNavigate();
   const location = useLocation();
+
+  useEffect(() => {
+    const isDark = theme === "dark";
+    document.documentElement.classList.toggle("dark", isDark);
+    localStorage.setItem("theme", theme);
+  }, [theme]);
+
+  useEffect(() => {
+    let alive = true;
+    const fetchPending = async () => {
+      try {
+        const res = await fetch(
+          `${import.meta.env.VITE_API_BASE_URL}/reservations.php?admin=1`,
+        );
+        const json = await res.json();
+        if (!res.ok || !alive) return;
+        const pending = (json.reservations || []).filter(
+          (r) => r.status === "pending",
+        ).length;
+        if (alive) setPendingReservations(pending);
+      } catch {}
+    };
+    fetchPending();
+    const id = setInterval(fetchPending, 20000);
+    return () => {
+      alive = false;
+      clearInterval(id);
+    };
+  }, []);
 
   const logout = () => {
     localStorage.removeItem("authToken");
@@ -66,12 +118,29 @@ export default function AdminNavigationBar() {
       </button>
 
       <aside className="hidden md:flex fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-slate-200 shadow-sm flex-col">
-        <div className="h-16 px-4 border-b border-slate-200 flex items-center gap-3">
-          <img src={ccslogo} alt="CCS logo" className="w-9 h-9" />
-          <div>
-            <p className="text-xs text-slate-500">CCS</p>
-            <h2 className="text-sm font-bold text-purple-800">Admin Panel</h2>
+        <div className="h-16 px-4 border-b border-slate-200 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <img src={ccslogo} alt="CCS logo" className="w-9 h-9" />
+            <div>
+              <p className="text-xs text-slate-500">CCS</p>
+              <h2 className="text-sm font-bold text-purple-800">Admin Panel</h2>
+            </div>
           </div>
+          <button
+            type="button"
+            onClick={() =>
+              setTheme((prev) => (prev === "dark" ? "light" : "dark"))
+            }
+            className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-slate-200 text-slate-700 hover:bg-purple-50 hover:text-purple-800"
+            aria-label="Toggle dark mode"
+            title="Toggle dark mode"
+          >
+            {theme === "dark" ? (
+              <Sun className="w-4 h-4" />
+            ) : (
+              <Moon className="w-4 h-4" />
+            )}
+          </button>
         </div>
 
         <nav className="flex-1 px-3 py-4 space-y-1">
@@ -129,6 +198,10 @@ export default function AdminNavigationBar() {
               );
             }
 
+            const badge =
+              link.badgeKey === "reservations" && pendingReservations > 0
+                ? pendingReservations
+                : 0;
             return (
               <button
                 key={link.label}
@@ -143,7 +216,12 @@ export default function AdminNavigationBar() {
                 } ${link.path ? "" : "opacity-60 cursor-default"}`}
               >
                 <Icon className="w-4 h-4" />
-                <span className="text-sm font-medium">{link.label}</span>
+                <span className="text-sm font-medium flex-1">{link.label}</span>
+                {badge > 0 && (
+                  <span className="inline-flex min-w-[20px] h-5 px-1.5 items-center justify-center rounded-full bg-amber-500 text-white text-xs font-bold">
+                    {badge > 99 ? "99+" : badge}
+                  </span>
+                )}
               </button>
             );
           })}
@@ -170,9 +248,28 @@ export default function AdminNavigationBar() {
             className="w-72 h-full bg-white border-r border-slate-200 shadow-xl px-3 py-4"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="h-12 px-2 mb-3 flex items-center gap-2">
-              <img src={ccslogo} alt="CCS logo" className="w-8 h-8" />
-              <h2 className="text-sm font-bold text-purple-800">Admin Panel</h2>
+            <div className="h-12 px-2 mb-3 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <img src={ccslogo} alt="CCS logo" className="w-8 h-8" />
+                <h2 className="text-sm font-bold text-purple-800">
+                  Admin Panel
+                </h2>
+              </div>
+              <button
+                type="button"
+                onClick={() =>
+                  setTheme((prev) => (prev === "dark" ? "light" : "dark"))
+                }
+                className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-slate-200 text-slate-700 hover:bg-purple-50 hover:text-purple-800"
+                aria-label="Toggle dark mode"
+                title="Toggle dark mode"
+              >
+                {theme === "dark" ? (
+                  <Sun className="w-4 h-4" />
+                ) : (
+                  <Moon className="w-4 h-4" />
+                )}
+              </button>
             </div>
 
             <nav className="space-y-1">
@@ -230,6 +327,10 @@ export default function AdminNavigationBar() {
                   );
                 }
 
+                const badge =
+                  link.badgeKey === "reservations" && pendingReservations > 0
+                    ? pendingReservations
+                    : 0;
                 return (
                   <button
                     key={link.label}
@@ -245,7 +346,14 @@ export default function AdminNavigationBar() {
                     }}
                   >
                     <Icon className="w-4 h-4" />
-                    <span className="text-sm font-medium">{link.label}</span>
+                    <span className="text-sm font-medium flex-1">
+                      {link.label}
+                    </span>
+                    {badge > 0 && (
+                      <span className="inline-flex min-w-[20px] h-5 px-1.5 items-center justify-center rounded-full bg-amber-500 text-white text-xs font-bold">
+                        {badge > 99 ? "99+" : badge}
+                      </span>
+                    )}
                   </button>
                 );
               })}

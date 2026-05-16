@@ -1,16 +1,29 @@
 import React, { useState, useEffect, useRef } from "react";
 import ccslogo from "../assets/image/ccslogo.png";
 import { useNavigate } from "react-router-dom";
+import { Moon, Sun } from "lucide-react";
 
 const NAV_LINKS = [
   { label: "Home", link: "/dashboard", route: true },
   { label: "Announcements", link: "/dashboard/announcements", route: true },
   { label: "History", link: "/dashboard/history", route: true },
-  { label: "Reservations", link: "#features" },
+  { label: "Reservations", link: "/dashboard/reservations", route: true },
+  { label: "Feedback", link: "/dashboard/feedback", route: true },
 ];
 export default function NavigationBar({ onEditProfile }) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [theme, setTheme] = useState(() => {
+    const stored = localStorage.getItem("theme");
+    if (stored === "dark" || stored === "light") return stored;
+    if (
+      window.matchMedia &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches
+    ) {
+      return "dark";
+    }
+    return "light";
+  });
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [notificationsLoading, setNotificationsLoading] = useState(false);
   const [notificationsError, setNotificationsError] = useState("");
@@ -20,6 +33,12 @@ export default function NavigationBar({ onEditProfile }) {
   const navigate = useNavigate();
   const currentUser = JSON.parse(localStorage.getItem("user") || "null");
   const activeIdNumber = currentUser?.id_number || "";
+
+  useEffect(() => {
+    const isDark = theme === "dark";
+    document.documentElement.classList.toggle("dark", isDark);
+    localStorage.setItem("theme", theme);
+  }, [theme]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -217,7 +236,7 @@ export default function NavigationBar({ onEditProfile }) {
           </span>
         </div>
 
-        <div className="hidden md:flex items-center gap-8 font-medium pr-20">
+        <div className="hidden md:flex items-center gap-6 font-medium pr-20">
           {NAV_LINKS.map((link) =>
             link.label === "Edit Profile" ? (
               <button
@@ -245,6 +264,22 @@ export default function NavigationBar({ onEditProfile }) {
               </a>
             ),
           )}
+
+          <button
+            type="button"
+            onClick={() =>
+              setTheme((prev) => (prev === "dark" ? "light" : "dark"))
+            }
+            className="inline-flex items-center justify-center w-9 h-9 rounded-full border border-stone-200 text-stone-600 hover:bg-purple-50 hover:text-purple-800 transition-colors"
+            aria-label="Toggle dark mode"
+            title="Toggle dark mode"
+          >
+            {theme === "dark" ? (
+              <Sun className="w-4 h-4" />
+            ) : (
+              <Moon className="w-4 h-4" />
+            )}
+          </button>
 
           <div className="relative" ref={notificationsRef}>
             <button
@@ -322,24 +357,42 @@ export default function NavigationBar({ onEditProfile }) {
             )}
           </div>
         </div>
-        <button
-          className="md:hidden lg:hidden text-stone-600"
-          onClick={() => setMenuOpen(!menuOpen)}
-        >
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            className="w-5 h-5"
+        <div className="md:hidden lg:hidden flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() =>
+              setTheme((prev) => (prev === "dark" ? "light" : "dark"))
+            }
+            className="inline-flex items-center justify-center w-9 h-9 rounded-full border border-stone-200 text-stone-600 hover:bg-purple-50 hover:text-purple-800 transition-colors"
+            aria-label="Toggle dark mode"
+            title="Toggle dark mode"
           >
-            {menuOpen ? (
-              <path strokeLinecap="round" d="M6 18L18 6M6 6l12 12" />
+            {theme === "dark" ? (
+              <Sun className="w-4 h-4" />
             ) : (
-              <path strokeLinecap="round" d="M4 6h16M4 12h16M4 18h16" />
+              <Moon className="w-4 h-4" />
             )}
-          </svg>
-        </button>
+          </button>
+          <button
+            className="text-stone-600"
+            onClick={() => setMenuOpen(!menuOpen)}
+            aria-label="Toggle menu"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              className="w-5 h-5"
+            >
+              {menuOpen ? (
+                <path strokeLinecap="round" d="M6 18L18 6M6 6l12 12" />
+              ) : (
+                <path strokeLinecap="round" d="M4 6h16M4 12h16M4 18h16" />
+              )}
+            </svg>
+          </button>
+        </div>
       </div>
 
       {menuOpen && (
@@ -370,6 +423,27 @@ export default function NavigationBar({ onEditProfile }) {
               {link.label}
             </button>
           ))}
+
+          <div className="mt-3 flex items-center justify-between">
+            <p className="text-xs font-semibold uppercase tracking-wide text-stone-500">
+              Theme
+            </p>
+            <button
+              type="button"
+              onClick={() =>
+                setTheme((prev) => (prev === "dark" ? "light" : "dark"))
+              }
+              className="inline-flex items-center justify-center w-9 h-9 rounded-full border border-stone-200 text-stone-600 hover:bg-purple-50 hover:text-purple-800 transition-colors"
+              aria-label="Toggle dark mode"
+              title="Toggle dark mode"
+            >
+              {theme === "dark" ? (
+                <Sun className="w-4 h-4" />
+              ) : (
+                <Moon className="w-4 h-4" />
+              )}
+            </button>
+          </div>
 
           <div className="mt-3 pt-3 border-t border-stone-200">
             <div className="flex items-center justify-between">

@@ -55,11 +55,11 @@ export default function Features() {
             {/* Section label */}
             <div className="text-center mb-16">
 
-                <h2 className="font-extrabold leading-tight" style={{ fontSize: "clamp(1.8rem, 4vw, 2.8rem)" }}>
+                <h2 className="font-extrabold leading-tight text-slate-900" style={{ fontSize: "clamp(1.8rem, 4vw, 2.8rem)" }}>
                     Everything you need to run a{" "}
-                    <span style={{ color: "#5b2d8e" }}>smarter lab.</span>
+                    <span className="text-purple-800">smarter lab.</span>
                 </h2>
-                <p className="mt-4 text-base font-medium max-w-xl mx-auto" style={{ color: "#6b7280" }}>
+                <p className="mt-4 text-base font-medium max-w-xl mx-auto text-slate-500">
                     Built specifically for university CCS labs, combining ease-of-use
                     with powerful management tools.
                 </p>
@@ -67,10 +67,10 @@ export default function Features() {
 
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {FEATURES.map((f, i) => (
-                    <div key={i} className="feature-card rounded-2xl p-7">
-                        <div className="feature-icon-wrap">{f.icon}</div>
-                        <h3 className="font-bold text-lg mb-2" style={{ color: "#1a0a2e" }}>{f.title}</h3>
-                        <p className="text-sm font-medium leading-relaxed" style={{ color: "#6b7280" }}>{f.desc}</p>
+                    <div key={i} className="feature-card rounded-2xl p-7 bg-white border border-slate-200 shadow-sm">
+                        <div className="feature-icon-wrap" style={{ color: f.accent }}>{f.icon}</div>
+                        <h3 className="font-bold text-lg mb-2 text-slate-900">{f.title}</h3>
+                        <p className="text-sm font-medium leading-relaxed text-slate-500">{f.desc}</p>
                     </div>
                 ))}
             </div>

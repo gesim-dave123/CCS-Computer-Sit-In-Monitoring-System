@@ -1,14 +1,11 @@
 import { useEffect, useState } from "react";
-import { Navigate } from "react-router-dom";
 import AdminNavigationBar from "../component/adminNavigationBar";
 
 export default function AdminSitInReportsPage() {
   const user = JSON.parse(localStorage.getItem("user") || "null");
-  if (!user || user.role !== "admin") {
-    return <Navigate to="/dashboard" replace />;
-  }
 
   const [summary, setSummary] = useState({ total: 0, active: 0, ended: 0 });
+
   const [byPurpose, setByPurpose] = useState([]);
   const [byLab, setByLab] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -44,13 +41,15 @@ export default function AdminSitInReportsPage() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-slate-50 text-slate-800 p-4 sm:p-6 md:pl-72">
+    <main className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 p-4 sm:p-6 md:pl-72">
       <AdminNavigationBar />
 
       <section className="max-w-7xl mx-auto mt-16 md:mt-0 space-y-6">
         <div className="rounded-2xl bg-gradient-to-r from-purple-800 to-purple-700 text-white p-6 sm:p-8 shadow-lg">
           <p className="text-purple-100 text-sm">Admin • Sit-In Reports</p>
-          <h1 className="text-2xl sm:text-3xl font-bold mt-1">View Sit-In Reports</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold mt-1">
+            View Sit-In Reports
+          </h1>
           <p className="text-purple-100 mt-2 text-sm sm:text-base">
             Summary and breakdown of sit-in sessions by purpose and lab.
           </p>
@@ -60,16 +59,28 @@ export default function AdminSitInReportsPage() {
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="bg-white border border-purple-100 rounded-xl p-4 shadow-sm">
-            <p className="text-xs uppercase tracking-wide text-slate-500">Total Sessions</p>
-            <p className="text-2xl font-bold text-slate-900 mt-2">{summary.total}</p>
+            <p className="text-xs uppercase tracking-wide text-slate-500">
+              Total Sessions
+            </p>
+            <p className="text-2xl font-bold text-slate-900 mt-2">
+              {summary.total}
+            </p>
           </div>
           <div className="bg-white border border-purple-100 rounded-xl p-4 shadow-sm">
-            <p className="text-xs uppercase tracking-wide text-slate-500">Active Sessions</p>
-            <p className="text-2xl font-bold text-slate-900 mt-2">{summary.active}</p>
+            <p className="text-xs uppercase tracking-wide text-slate-500">
+              Active Sessions
+            </p>
+            <p className="text-2xl font-bold text-slate-900 mt-2">
+              {summary.active}
+            </p>
           </div>
           <div className="bg-white border border-purple-100 rounded-xl p-4 shadow-sm">
-            <p className="text-xs uppercase tracking-wide text-slate-500">Ended Sessions</p>
-            <p className="text-2xl font-bold text-slate-900 mt-2">{summary.ended}</p>
+            <p className="text-xs uppercase tracking-wide text-slate-500">
+              Ended Sessions
+            </p>
+            <p className="text-2xl font-bold text-slate-900 mt-2">
+              {summary.ended}
+            </p>
           </div>
         </div>
 
@@ -87,12 +98,21 @@ export default function AdminSitInReportsPage() {
             </div>
             <div className="p-4 space-y-2">
               {byPurpose.length === 0 ? (
-                <p className="text-sm text-slate-500">No purpose report data found.</p>
+                <p className="text-sm text-slate-500">
+                  No purpose report data found.
+                </p>
               ) : (
                 byPurpose.map((row) => (
-                  <div key={row.purpose} className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2">
-                    <span className="text-sm text-slate-700">{row.purpose}</span>
-                    <span className="text-sm font-bold text-slate-900">{row.total}</span>
+                  <div
+                    key={row.purpose}
+                    className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2"
+                  >
+                    <span className="text-sm text-slate-700">
+                      {row.purpose}
+                    </span>
+                    <span className="text-sm font-bold text-slate-900">
+                      {row.total}
+                    </span>
                   </div>
                 ))
               )}
@@ -105,12 +125,19 @@ export default function AdminSitInReportsPage() {
             </div>
             <div className="p-4 space-y-2">
               {byLab.length === 0 ? (
-                <p className="text-sm text-slate-500">No lab report data found.</p>
+                <p className="text-sm text-slate-500">
+                  No lab report data found.
+                </p>
               ) : (
                 byLab.map((row) => (
-                  <div key={row.lab} className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2">
+                  <div
+                    key={row.lab}
+                    className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2"
+                  >
                     <span className="text-sm text-slate-700">{row.lab}</span>
-                    <span className="text-sm font-bold text-slate-900">{row.total}</span>
+                    <span className="text-sm font-bold text-slate-900">
+                      {row.total}
+                    </span>
                   </div>
                 ))
               )}

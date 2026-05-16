@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS notifications (
     announcement_id INT NULL,
     title VARCHAR(160) NOT NULL,
     message TEXT NOT NULL,
-    category ENUM('system', 'announcement', 'sit_in', 'account', 'reminder') NOT NULL DEFAULT 'system',
+    category ENUM('system', 'announcement', 'sit_in', 'account', 'reminder', 'reservation') NOT NULL DEFAULT 'system',
     is_read TINYINT(1) NOT NULL DEFAULT 0,
     read_at DATETIME NULL,
     action_url VARCHAR(255) NULL,

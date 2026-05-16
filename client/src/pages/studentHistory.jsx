@@ -79,7 +79,7 @@ export default function StudentHistoryPage() {
   }, [activeIdNumber]);
 
   return (
-    <main className="min-h-screen bg-slate-50">
+    <main className="min-h-screen bg-slate-50 dark:bg-slate-950">
       <NavigationBar />
 
       {selectedHistoryFeedback && selectedHistoryFeedback.feedback && (
@@ -239,8 +239,8 @@ export default function StudentHistoryPage() {
                           <span
                             className={`text-xs px-2 py-1 rounded-full font-semibold ${
                               record.status === "ended"
-                                ? "bg-slate-200 text-slate-700"
-                                : "bg-emerald-100 text-emerald-700"
+                                ? "bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200"
+                                : "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300"
                             }`}
                           >
                             {record.status}

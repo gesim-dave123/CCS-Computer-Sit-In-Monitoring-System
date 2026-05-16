@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { Navigate } from "react-router-dom";
 import AdminNavigationBar from "../component/adminNavigationBar";
 import { Search, X } from "lucide-react";
+
 
 const PURPOSE_OPTIONS = [
   "C Programming",
@@ -15,11 +15,9 @@ const PURPOSE_OPTIONS = [
 
 export default function AdminStudentsPage() {
   const user = JSON.parse(localStorage.getItem("user") || "null");
-  if (!user || user.role !== "admin") {
-    return <Navigate to="/dashboard" replace />;
-  }
 
   const [queryInput, setQueryInput] = useState("");
+
   const [searchQuery, setSearchQuery] = useState("");
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(false);

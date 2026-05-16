@@ -51,9 +51,10 @@ try {
     $purposeRows = $purposeStmt->fetchAll();
 
     $labStmt = $pdo->query(
-        "SELECT lab, COUNT(*) AS total
-         FROM sit_in_sessions
-         GROUP BY lab
+        "SELECT COALESCE(l.lab_name, s.lab) AS lab, COUNT(*) AS total
+         FROM sit_in_sessions s
+         LEFT JOIN laboratories l ON s.lab_id = l.lab_id
+         GROUP BY COALESCE(l.lab_name, s.lab)
          ORDER BY total DESC"
     );
     $labRows = $labStmt->fetchAll();
