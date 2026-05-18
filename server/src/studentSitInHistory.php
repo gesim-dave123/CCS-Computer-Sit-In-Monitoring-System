@@ -47,6 +47,10 @@ if ($limit > 500) {
 }
 
 try {
+    // Check if pc_number column exists
+    $checkCol = $pdo->query("SHOW COLUMNS FROM sit_in_sessions LIKE 'pc_number'")->fetch();
+    $pcCol = $checkCol ? "s.pc_number," : "NULL AS pc_number,";
+
     $userStmt = $pdo->prepare("SELECT id FROM users WHERE id_number = ? LIMIT 1");
     $userStmt->execute([$idNumber]);
     $userRow = $userStmt->fetch();
@@ -60,6 +64,7 @@ try {
                 s.name,
                 s.purpose,
                 COALESCE(lb.lab_name, s.lab) AS lab,
+                $pcCol
                 s.status,
                 s.started_at,
                 s.ended_at,
@@ -91,6 +96,7 @@ try {
                 s.name,
                 s.purpose,
                 COALESCE(lb.lab_name, s.lab) AS lab,
+                $pcCol
                 s.status,
                 s.started_at,
                 s.ended_at,
@@ -126,6 +132,7 @@ try {
             'name' => $row['name'],
             'purpose' => $row['purpose'],
             'lab' => $row['lab'],
+            'pc_number' => $row['pc_number'],
             'status' => $row['status'],
             'started_at' => $row['started_at'],
             'ended_at' => $row['ended_at'],
