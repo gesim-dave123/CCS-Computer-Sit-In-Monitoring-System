@@ -41,6 +41,7 @@ if (!is_array($data)) {
 
 $idNumber = trim($data['id_number'] ?? '');
 $purpose = trim($data['purpose'] ?? '');
+$pcNumber = trim($data['pc_number'] ?? '');
 $labId = (int)($data['lab_id'] ?? 0);
 $labText = trim($data['lab'] ?? ''); // legacy fallback
 
@@ -99,8 +100,16 @@ try {
         exit();
     }
 
-    $insertStmt = $pdo->prepare("INSERT INTO sit_in_sessions (id_number, name, purpose, lab, lab_id, status) VALUES (?, ?, ?, ?, ?, 'in_session')");
-    $insertStmt->execute([$idNumber, $name, $purpose, $lab, $resolvedLabId]);
+    // Check if pc_number column exists
+    $checkCol = $pdo->query("SHOW COLUMNS FROM sit_in_sessions LIKE 'pc_number'")->fetch();
+    
+    if ($checkCol) {
+        $insertStmt = $pdo->prepare("INSERT INTO sit_in_sessions (id_number, name, purpose, lab, pc_number, lab_id, status) VALUES (?, ?, ?, ?, ?, ?, 'in_session')");
+        $insertStmt->execute([$idNumber, $name, $purpose, $lab, $pcNumber, $resolvedLabId]);
+    } else {
+        $insertStmt = $pdo->prepare("INSERT INTO sit_in_sessions (id_number, name, purpose, lab, lab_id, status) VALUES (?, ?, ?, ?, ?, 'in_session')");
+        $insertStmt->execute([$idNumber, $name, $purpose, $lab, $resolvedLabId]);
+    }
     $sitInId = (int)$pdo->lastInsertId();
 
     $updateStmt = $pdo->prepare("UPDATE users SET is_in_session = 1 WHERE id = ?");
