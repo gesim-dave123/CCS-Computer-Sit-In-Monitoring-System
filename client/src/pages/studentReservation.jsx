@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import NavigationBar from "../component/studentNavBar";
+import ccslogo from "../assets/image/ccslogo.png";
 import {
   Monitor,
   MapPin,
@@ -11,6 +12,7 @@ import {
   ChevronRight,
   ChevronLeft,
   X,
+  Search,
   BookMarked,
   Cpu,
   Code,
@@ -18,757 +20,207 @@ import {
   Palette,
   FileText,
   Globe,
+  Plus,
+  History,
+  Info,
+  RefreshCw,
+  CalendarCheck2,
+  CheckCircle2
 } from "lucide-react";
 
-const SW_ICONS = {
-  IDE: Code,
-  Office: FileText,
-  Database: Database,
-  Design: Palette,
-  Browser: Globe,
-};
-const getSWIcon = (cat) => {
-  if (!cat) return Cpu;
-  for (const [k, I] of Object.entries(SW_ICONS))
-    if (cat.toLowerCase().includes(k.toLowerCase())) return I;
-  return Cpu;
-};
-
-const TIME_SLOTS = [
-  "7:30 AM – 9:00 AM",
-  "9:00 AM – 10:30 AM",
-  "10:30 AM – 12:00 PM",
-  "12:00 PM – 1:30 PM",
-  "1:30 PM – 3:00 PM",
-  "3:00 PM – 4:30 PM",
-  "4:30 PM – 6:00 PM",
-];
-
-const PURPOSES = [
-  "C Programming",
-  "Java Programming",
-  "Python Programming",
-  "Web Development",
-  "Database Management",
-  "Thesis / Research",
-  "Data Structures",
-  "Operating Systems",
-  "Networking",
-  "Other",
-];
-
+const TIME_SLOTS = ["7:30 AM – 9:00 AM", "9:00 AM – 10:30 AM", "10:30 AM – 12:00 PM", "12:00 PM – 1:30 PM", "1:30 PM – 3:00 PM", "3:00 PM – 4:30 PM", "4:30 PM – 6:00 PM"];
+const PURPOSES = ["C Programming", "Java Programming", "Python Programming", "Web Development", "Database Management", "Thesis / Research", "Data Structures", "Operating Systems", "Networking", "Other"];
 const STATUS_COLORS = {
-  pending: "bg-amber-100 text-amber-700 border-amber-200",
-  approved: "bg-emerald-100 text-emerald-700 border-emerald-200",
-  cancelled: "bg-slate-100 text-slate-500 border-slate-200",
-  completed: "bg-purple-100 text-purple-700 border-purple-200",
+  pending: "bg-amber-100 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 border-amber-100 dark:border-amber-800",
+  approved: "bg-emerald-100 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 border-emerald-100 dark:border-emerald-800",
+  cancelled: "bg-slate-100 dark:bg-slate-800 text-slate-500 border-slate-200 dark:border-slate-700",
+  completed: "bg-purple-100 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 border-purple-100 dark:border-purple-800"
 };
 
 export default function StudentReservationPage() {
   const user = JSON.parse(localStorage.getItem("user") || "null");
   const idNumber = user?.id_number || "";
-
-  // Step: 0=lab pick, 1=seat/form, 2=success
   const [step, setStep] = useState(0);
-  const [tab, setTab] = useState("new"); // "new" | "mine"
-
+  const [tab, setTab] = useState("new");
   const [selectedLab, setSelectedLab] = useState(null);
   const [selectedSeat, setSelectedSeat] = useState(null);
-  const [selectedDate, setSelectedDate] = useState(() => {
-    const d = new Date();
-    d.setDate(d.getDate() + 1);
-    return d.toISOString().split("T")[0];
-  });
+  const [selectedDate, setSelectedDate] = useState(() => { const d = new Date(); d.setDate(d.getDate() + 1); return d.toISOString().split("T")[0]; });
   const [selectedSlot, setSelectedSlot] = useState(TIME_SLOTS[0]);
   const [purpose, setPurpose] = useState(PURPOSES[0]);
-
   const [reservedSeats, setReservedSeats] = useState([]);
   const [seatsLoading, setSeatsLoading] = useState(false);
-
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [successId, setSuccessId] = useState(null);
-
   const [myReservations, setMyReservations] = useState([]);
   const [myResLoading, setMyResLoading] = useState(false);
   const [cancellingId, setCancellingId] = useState(null);
   const [labs, setLabs] = useState([]);
   const [labsLoading, setLabsLoading] = useState(true);
+  const [labSearchQuery, setLabSearchQuery] = useState("");
 
   const BASE = import.meta.env.VITE_API_BASE_URL;
 
-  // Fetch labs (with seats, building, software) from database
+  const filteredLabs = useMemo(() => {
+    const q = labSearchQuery.toLowerCase().trim();
+    if (!q) return labs;
+    return labs.filter(l => l.name.toLowerCase().includes(q) || l.room_number?.toLowerCase().includes(q) || (l.software || []).some(s => s.software_name.toLowerCase().includes(q)));
+  }, [labs, labSearchQuery]);
+
+  const stats = useMemo(() => ({
+    total: myReservations.length,
+    pending: myReservations.filter(r => r.status === "pending").length,
+    approved: myReservations.filter(r => r.status === "approved").length,
+    completed: myReservations.filter(r => r.status === "completed").length
+  }), [myReservations]);
+
   useEffect(() => {
     setLabsLoading(true);
-    fetch(`${BASE}/labsSoftware.php`)
-      .then((r) => r.json())
-      .then((d) => {
-        const labsList = (d.labs || []).map((l) => ({
-          lab_id: Number(l.lab_id),
-          id: l.lab_name,
-          name: l.lab_name,
-          seats: Number(l.seats) || 30,
-          building: l.building || "CCS Building",
-          room_number: l.room_number,
-          software: l.software || [],
-        }));
-        setLabs(labsList);
-      })
-      .catch(() => {})
-      .finally(() => setLabsLoading(false));
+    fetch(`${BASE}/labsSoftware.php`).then(r => r.json()).then(d => {
+      setLabs((d.labs || []).map(l => ({ lab_id: Number(l.lab_id), id: l.lab_name, name: l.lab_name, seats: Number(l.seats) || 30, building: l.building, room_number: l.room_number, software: l.software || [] })));
+    }).finally(() => setLabsLoading(false));
   }, []);
 
-  // Fetch seat availability whenever lab, date, or slot changes
   useEffect(() => {
     if (!selectedLab || step !== 1) return;
-    let alive = true;
-    setSeatsLoading(true);
-    setSelectedSeat(null);
-    fetch(
-      `${BASE}/reservations.php?lab=${encodeURIComponent(selectedLab.id)}&date=${selectedDate}`,
-    )
-      .then((r) => r.json())
-      .then((d) => {
-        if (alive) setReservedSeats(d.reserved_seats || []);
-      })
-      .catch(() => {})
-      .finally(() => {
-        if (alive) setSeatsLoading(false);
-      });
-    return () => {
-      alive = false;
-    };
-  }, [selectedLab, selectedDate, step]);
+    setSeatsLoading(true); setSelectedSeat(null);
+    fetch(`${BASE}/reservations.php?lab=${encodeURIComponent(selectedLab.id)}&date=${selectedDate}`).then(r => r.json()).then(d => setReservedSeats(d.reserved_seats || [])).finally(() => setSeatsLoading(false));
+  }, [selectedLab, selectedDate, step, selectedSlot]);
 
-  // Fetch my reservations
-  const fetchMyReservations = () => {
-    if (!idNumber) return;
-    setMyResLoading(true);
-    fetch(`${BASE}/reservations.php?id_number=${encodeURIComponent(idNumber)}`)
-      .then((r) => r.json())
-      .then((d) => setMyReservations(d.reservations || []))
-      .catch(() => {})
-      .finally(() => setMyResLoading(false));
-  };
-
-  useEffect(() => {
-    if (tab === "mine") fetchMyReservations();
-  }, [tab]);
-
-  const isSeatTaken = (seatNum) =>
-    reservedSeats.some(
-      (s) => Number(s.seat_number) === seatNum && s.time_slot === selectedSlot,
-    );
+  const fetchMyReservations = () => { if (!idNumber) return; setMyResLoading(true); fetch(`${BASE}/reservations.php?id_number=${encodeURIComponent(idNumber)}`).then(r => r.json()).then(d => setMyReservations(d.reservations || [])).finally(() => setMyResLoading(false)); };
+  useEffect(() => { if (tab === "mine") fetchMyReservations(); }, [tab]);
 
   const handleSubmit = async () => {
-    if (!selectedSeat) {
-      setError("Please select a seat.");
-      return;
-    }
-    setError("");
+    if (!selectedSeat) { setError("Select a seat."); return; }
     setSubmitting(true);
     try {
-      const res = await fetch(`${BASE}/reservations.php`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "create",
-          id_number: idNumber,
-          lab_id: selectedLab.lab_id,
-          lab: selectedLab.id,
-          seat_number: selectedSeat,
-          purpose,
-          date: selectedDate,
-          time_slot: selectedSlot,
-        }),
-      });
+      const res = await fetch(`${BASE}/reservations.php`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "create", id_number: idNumber, lab_id: selectedLab.lab_id, lab: selectedLab.id, seat_number: selectedSeat, purpose, date: selectedDate, time_slot: selectedSlot }) });
       const json = await res.json();
-      if (!res.ok) {
-        setError(json.error || "Failed to submit reservation.");
-        return;
-      }
-      setSuccessId(json.reservation_id);
-      setStep(2);
-    } catch {
-      setError("Could not reach the server.");
-    } finally {
-      setSubmitting(false);
-    }
+      if (!res.ok) { setError(json.error || "Failed."); return; }
+      setSuccessId(json.reservation_id); setStep(2);
+    } finally { setSubmitting(false); }
   };
 
   const handleCancel = async (rid) => {
     setCancellingId(rid);
     try {
-      const res = await fetch(`${BASE}/reservations.php`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "cancel",
-          id_number: idNumber,
-          reservation_id: rid,
-        }),
-      });
-      const json = await res.json();
-      if (!res.ok) {
-        alert(json.error || "Could not cancel.");
-        return;
-      }
-      fetchMyReservations();
-    } catch {
-      alert("Server error.");
-    } finally {
-      setCancellingId(null);
-    }
+      const res = await fetch(`${BASE}/reservations.php`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "cancel", id_number: idNumber, reservation_id: rid }) });
+      if (res.ok) fetchMyReservations();
+    } finally { setCancellingId(null); }
   };
-
-  const resetFlow = () => {
-    setStep(0);
-    setSelectedLab(null);
-    setSelectedSeat(null);
-    setError("");
-    setSuccessId(null);
-  };
-
-  const labForSeat = selectedLab || labs[0];
-  const totalSeats = labForSeat?.seats || 30;
 
   return (
-    <main className="min-h-screen bg-slate-50 dark:bg-slate-950">
+    <main className="min-h-screen bg-[#fef7ff] dark:bg-slate-950 font-['Montserrat'] transition-colors duration-300">
       <NavigationBar />
+      <section className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-12 space-y-6">
+        <header className="px-2">
+          <h1 className="text-2xl md:text-3xl font-bold text-[#381872] dark:text-violet-300 tracking-tight">Reservation.</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium">Secure your laboratory activity slot.</p>
+        </header>
 
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-14 space-y-6">
-        {/* Header */}
-        <div
-          className="rounded-2xl overflow-hidden shadow-lg relative"
-          style={{ background: "linear-gradient(135deg, #240d48, #5428a8)" }}
-        >
-          <div
-            className="absolute inset-0 opacity-10"
-            style={{
-              backgroundImage:
-                "radial-gradient(circle, rgba(201,151,58,0.4) 1px, transparent 1px)",
-              backgroundSize: "28px 28px",
-            }}
-          />
-          <div className="relative px-6 py-8 sm:px-10">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 rounded-xl bg-white/10 backdrop-blur-sm">
-                <BookMarked className="w-6 h-6 text-amber-400" />
-              </div>
-              <p className="text-purple-200 text-sm font-medium">
-                Student Portal
-              </p>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-white">
-              Computer Lab Reservation
-            </h1>
-            <p className="text-purple-200 mt-2 text-sm sm:text-base max-w-xl">
-              Reserve a computer seat in your preferred laboratory. Choose your
-              lab, pick a seat, and set your schedule.
-            </p>
-          </div>
+        <div className="bg-white dark:bg-slate-900 rounded-xl p-1 border border-slate-100 dark:border-slate-800 shadow-sm inline-flex gap-1 ml-2">
+           {["new", "mine"].map(t => (
+             <button key={t} onClick={() => setTab(t)} className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${tab === t ? "bg-[#381872] text-white shadow-sm" : "text-slate-400 hover:text-slate-600"}`}>
+               {t === "new" ? "Booking" : "History"}
+             </button>
+           ))}
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-2 border-b border-slate-200">
-          {["new", "mine"].map((t) => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              className={`px-5 py-2.5 text-sm font-semibold rounded-t-lg transition-all ${
-                tab === t
-                  ? "bg-white border border-b-white border-slate-200 text-purple-700 -mb-px"
-                  : "text-slate-500 hover:text-slate-800"
-              }`}
-            >
-              {t === "new" ? "New Reservation" : "My Reservations"}
-            </button>
-          ))}
-        </div>
-
-        {/* ══════════ NEW RESERVATION TAB ══════════ */}
         {tab === "new" && (
-          <>
-            {/* Step indicator */}
-            <div className="flex items-center gap-2 text-sm">
-              {["Choose Lab", "Select Seat & Schedule"].map((label, i) => (
-                <div key={i} className="flex items-center gap-2">
-                  <span
-                    className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs ${
-                      step > i
-                        ? "bg-emerald-500 text-white dark:bg-emerald-600"
-                        : step === i
-                          ? "bg-purple-700 text-white dark:bg-purple-600"
-                          : "bg-slate-200 text-slate-500 dark:bg-slate-700 dark:text-slate-400"
-                    }`}
-                  >
-                    {step > i ? "✓" : i + 1}
-                  </span>
-                  <span
-                    className={
-                      step === i
-                        ? "text-slate-800 font-semibold dark:text-slate-100"
-                        : "text-slate-400 dark:text-slate-500"
-                    }
-                  >
-                    {label}
-                  </span>
-                  {i < 1 && (
-                    <ChevronRight className="w-4 h-4 text-slate-300 dark:text-slate-600" />
-                  )}
-                </div>
-              ))}
-            </div>
-
-            {/* ── STEP 0: Lab selection ── */}
+          <div className="space-y-6">
             {step === 0 && (
-              <div className="space-y-4 fade-up">
-                <h2 className="text-lg font-bold text-slate-800">
-                  Select a Laboratory Room
-                </h2>
-                {labsLoading ? (
-                  <div className="flex items-center justify-center py-16">
-                    <Loader2 className="w-8 h-8 text-purple-600 animate-spin" />
-                  </div>
-                ) : labs.length === 0 ? (
-                  <p className="text-center text-sm text-slate-500 py-12">
-                    No laboratories available.
-                  </p>
-                ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {labs.map((lab) => {
-                      const sw = lab.software || [];
-                      return (
-                        <button
-                          key={lab.lab_id}
-                          onClick={() => {
-                            setSelectedLab(lab);
-                            setStep(1);
-                          }}
-                          className="group text-left bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:border-purple-400 hover:shadow-purple-100 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200"
-                        >
-                          <div className="flex items-start justify-between mb-4">
-                            <div className="p-3 rounded-xl bg-purple-50 group-hover:bg-purple-600 transition-colors">
-                              <Monitor className="w-6 h-6 text-purple-700 group-hover:text-white transition-colors" />
-                            </div>
-                            <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700">
-                              Available
-                            </span>
-                          </div>
-                          <h3 className="font-bold text-slate-900 text-base">
-                            {lab.name}
-                          </h3>
-                          <div className="mt-2 space-y-1">
-                            <div className="flex items-center gap-1.5 text-xs text-slate-500">
-                              <MapPin className="w-3.5 h-3.5" /> {lab.building}
-                            </div>
-                            <div className="flex items-center gap-1.5 text-xs text-slate-500">
-                              <Monitor className="w-3.5 h-3.5" /> {lab.seats}{" "}
-                              computer seats
-                            </div>
-                          </div>
-                          {sw.length > 0 && (
-                            <div className="mt-3 flex flex-wrap gap-1">
-                              {sw.slice(0, 3).map((s) => {
-                                const Icon = getSWIcon(s.category);
-                                return (
-                                  <span
-                                    key={s.software_id}
-                                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-purple-50 text-[11px] text-purple-700 font-medium"
-                                  >
-                                    <Icon className="w-3 h-3" />
-                                    {s.software_name}
-                                  </span>
-                                );
-                              })}
-                              {sw.length > 3 && (
-                                <span className="px-2 py-0.5 rounded-md bg-slate-100 text-[11px] text-slate-500 font-medium">
-                                  +{sw.length - 3} more
-                                </span>
-                              )}
-                            </div>
-                          )}
-                          <div className="mt-4 flex items-center gap-1 text-purple-700 text-sm font-semibold group-hover:gap-2 transition-all">
-                            Select Lab <ChevronRight className="w-4 h-4" />
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
+              <div className="space-y-6">
+                <div className="relative max-w-md ml-2">
+                  <Search className="w-3.5 h-3.5 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input value={labSearchQuery} onChange={e => setLabSearchQuery(e.target.value)} placeholder="Filter labs or software..." className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-purple-300" />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {labsLoading ? Array.from({ length: 4 }).map((_, i) => <div key={i} className="animate-pulse bg-white dark:bg-slate-900 rounded-2xl h-40 border border-slate-100 dark:border-slate-800" />) : filteredLabs.map(lab => (
+                    <button key={lab.lab_id} onClick={() => { setSelectedLab(lab); setStep(1); }} className="bg-white dark:bg-slate-900 border p-5 rounded-2xl shadow-sm hover:shadow-lg transition-all text-left group overflow-hidden relative">
+                       <div className="absolute top-0 right-0 w-16 h-16 bg-[#a67ffe]/5 rounded-bl-full group-hover:bg-[#a67ffe]/10 transition-colors" />
+                       <div className="w-10 h-10 rounded-xl bg-violet-50 dark:bg-violet-900/30 flex items-center justify-center text-[#381872] dark:text-violet-300 mb-4 transition-transform group-hover:scale-110"><MapPin size={20} /></div>
+                       <h3 className="text-base font-bold dark:text-white line-clamp-1">{lab.name}</h3>
+                       <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1 mb-4">{lab.building}</p>
+                       <div className="flex gap-3 text-[10px] font-bold text-slate-500"><span className="flex items-center gap-1"><Monitor size={12} /> {lab.seats}</span><span className="flex items-center gap-1"><Cpu size={12} /> {lab.software?.length || 0} SW</span></div>
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
 
-            {/* ── STEP 1: Seat map + form ── */}
             {step === 1 && selectedLab && (
-              <div className="space-y-5 fade-up">
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={() => setStep(0)}
-                    className="p-2 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-600"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                  </button>
-                  <div className="flex-1 min-w-0">
-                    <h2 className="text-lg font-bold text-slate-800">
-                      {selectedLab.name}
-                    </h2>
-                    <p className="text-sm text-slate-500">
-                      {selectedLab.seats} seats · {selectedLab.building}
-                    </p>
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 animate-in fade-in duration-300">
+                <div className="lg:col-span-4 space-y-4">
+                  <div className="bg-[#381872] dark:bg-violet-950 rounded-2xl p-6 text-white shadow-xl relative overflow-hidden">
+                    <button onClick={() => setStep(0)} className="mb-4 text-[9px] font-black uppercase tracking-widest flex items-center gap-1 opacity-60 hover:opacity-100 transition-opacity"><ChevronLeft size={12} /> Back</button>
+                    <h3 className="text-xl font-bold">{selectedLab.name}</h3>
+                    <p className="text-violet-200 text-[10px] font-black uppercase tracking-widest mt-1 mb-6">{selectedLab.building}</p>
+                    <div className="space-y-3">
+                       <input type="date" value={selectedDate} min={new Date().toISOString().split("T")[0]} onChange={e => setSelectedDate(e.target.value)} className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-2 text-xs font-bold focus:outline-none" />
+                       <select value={selectedSlot} onChange={e => setSelectedSlot(e.target.value)} className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-2 text-xs font-bold focus:outline-none appearance-none">{TIME_SLOTS.map(s => <option key={s} value={s} className="text-slate-900">{s}</option>)}</select>
+                       <select value={purpose} onChange={e => setPurpose(e.target.value)} className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-2 text-xs font-bold focus:outline-none appearance-none">{PURPOSES.map(p => <option key={p} value={p} className="text-slate-900">{p}</option>)}</select>
+                    </div>
+                  </div>
+                  <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-100 dark:border-slate-800 shadow-sm text-center">
+                    {selectedSeat ? (
+                       <button onClick={handleSubmit} disabled={submitting} className="w-full py-3 bg-[#381872] text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg active:scale-95 disabled:opacity-50">
+                          {submitting ? "Booking..." : `Confirm Seat #${selectedSeat}`}
+                       </button>
+                    ) : <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest py-2">Select a terminal on the map</p>}
                   </div>
                 </div>
 
-                {/* Available Software section */}
-                {(selectedLab.software || []).length > 0 && (
-                  <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
-                    <h3 className="text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
-                      <Cpu className="w-4 h-4 text-purple-600" />
-                      Available Software in this Lab
-                    </h3>
-                    <div className="flex flex-wrap gap-2">
-                      {(selectedLab.software || []).map((s) => {
-                        const Icon = getSWIcon(s.category);
-                        return (
-                          <span
-                            key={s.software_id}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-50 border border-purple-100 text-sm text-purple-800 font-medium"
-                          >
-                            <Icon className="w-4 h-4 text-purple-600" />
-                            {s.software_name}
-                            {s.category && (
-                              <span className="text-[10px] text-purple-500">
-                                ({s.category})
-                              </span>
-                            )}
-                          </span>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-                {/* Date / Time row */}
-                <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
-                  <h3 className="text-sm font-bold text-slate-700 mb-4 flex items-center gap-2">
-                    <CalendarDays className="w-4 h-4 text-purple-600" />{" "}
-                    Schedule
-                  </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-xs text-slate-500 font-medium block mb-1">
-                        Date
-                      </label>
-                      <input
-                        type="date"
-                        value={selectedDate}
-                        min={new Date().toISOString().split("T")[0]}
-                        onChange={(e) => setSelectedDate(e.target.value)}
-                        className="w-full border border-slate-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs text-slate-500 font-medium block mb-1">
-                        Time Slot
-                      </label>
-                      <select
-                        value={selectedSlot}
-                        onChange={(e) => setSelectedSlot(e.target.value)}
-                        className="w-full border border-slate-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300"
-                      >
-                        {TIME_SLOTS.map((s) => (
-                          <option key={s} value={s}>
-                            {s}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Seat map */}
-                <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-sm font-bold text-slate-700 flex items-center gap-2">
-                      <Monitor className="w-4 h-4 text-purple-600" /> Seat Map
-                    </h3>
-                    <div className="flex items-center gap-4 text-xs text-slate-500">
-                      <span className="flex items-center gap-1.5">
-                        <span className="w-3 h-3 rounded bg-emerald-400 block" />
-                        Available
-                      </span>
-                      <span className="flex items-center gap-1.5">
-                        <span className="w-3 h-3 rounded bg-red-400 block" />
-                        Taken
-                      </span>
-                      <span className="flex items-center gap-1.5">
-                        <span className="w-3 h-3 rounded bg-amber-400 block" />
-                        Selected
-                      </span>
-                    </div>
-                  </div>
-
-                  {seatsLoading ? (
-                    <div className="flex items-center justify-center py-12">
-                      <Loader2 className="w-8 h-8 text-purple-600 animate-spin" />
-                    </div>
-                  ) : (
-                    <>
-                      {/* Instructor desk */}
-                      <div className="flex justify-center mb-6">
-                        <div className="px-8 py-2 rounded-xl bg-slate-800 text-white text-xs font-bold tracking-wide shadow">
-                          INSTRUCTOR'S DESK
+                <div className="lg:col-span-8 bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-100 dark:border-slate-800 shadow-sm relative overflow-hidden">
+                   <div className="flex justify-between items-center mb-6">
+                      <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2"><Monitor size={14} className="text-violet-500" />Terminal Layout</h4>
+                      <div className="flex gap-3 text-[8px] font-black uppercase tracking-tighter"><span className="flex items-center gap-1"><div className="w-2 h-2 rounded bg-emerald-400" /> Free</span><span className="flex items-center gap-1"><div className="w-2 h-2 rounded bg-red-400" /> Taken</span></div>
+                   </div>
+                   {seatsLoading ? <div className="py-20 text-center"><Loader2 className="animate-spin mx-auto text-violet-200" /></div> : (
+                     <div className="max-w-xl mx-auto">
+                        <div className="flex justify-center mb-8"><div className="px-6 py-1.5 rounded-lg bg-slate-800 dark:bg-slate-950 text-white text-[8px] font-black uppercase tracking-[0.3em]">Front</div></div>
+                        <div className="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-2">
+                           {Array.from({ length: selectedLab.seats }, (_, i) => {
+                             const n = i + 1; const taken = reservedSeats.some(s => Number(s.seat_number) === n && s.time_slot === selectedSlot);
+                             const chosen = selectedSeat === n;
+                             return (
+                               <button key={n} disabled={taken} onClick={() => setSelectedSeat(chosen ? null : n)} className={`aspect-square rounded-lg flex items-center justify-center text-[9px] font-black transition-all ${taken ? "bg-red-50 dark:bg-red-950/20 text-red-200 border border-red-100 dark:border-red-900/30" : chosen ? "bg-amber-400 text-white scale-110 shadow-lg ring-2 ring-amber-400 border-2 border-white" : "bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/30 hover:border-violet-400 hover:scale-105"}`}>{n}</button>
+                             );
+                           })}
                         </div>
-                      </div>
-
-                      <div
-                        className="grid gap-2"
-                        style={{
-                          gridTemplateColumns:
-                            "repeat(auto-fill, minmax(52px, 1fr))",
-                        }}
-                      >
-                        {Array.from({ length: totalSeats }, (_, i) => {
-                          const num = i + 1;
-                          const taken = isSeatTaken(num);
-                          const chosen = selectedSeat === num;
-                          return (
-                            <button
-                              key={num}
-                              disabled={taken}
-                              onClick={() =>
-                                setSelectedSeat(chosen ? null : num)
-                              }
-                              title={`Seat ${num}${taken ? " (Taken)" : ""}`}
-                              className={`relative flex flex-col items-center justify-center rounded-xl border-2 py-2.5 px-1 text-xs font-bold transition-all duration-150
-                                ${
-                                  taken
-                                    ? "border-red-200 bg-red-50 text-red-400 cursor-not-allowed"
-                                    : chosen
-                                      ? "border-amber-400 bg-amber-50 text-amber-700 scale-105 shadow-lg shadow-amber-200"
-                                      : "border-emerald-200 bg-emerald-50 text-emerald-700 hover:border-purple-400 hover:bg-purple-50 hover:text-purple-700 hover:scale-105"
-                                }`}
-                            >
-                              <Monitor className="w-5 h-5 mb-0.5" />
-                              {num}
-                              {chosen && (
-                                <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-amber-400 rounded-full border-2 border-white" />
-                              )}
-                            </button>
-                          );
-                        })}
-                      </div>
-
-                      <p className="mt-3 text-xs text-slate-400 text-center">
-                        {totalSeats -
-                          reservedSeats.filter(
-                            (s) => s.time_slot === selectedSlot,
-                          ).length}{" "}
-                        of {totalSeats} seats available for {selectedSlot}
-                      </p>
-                    </>
-                  )}
-                </div>
-
-                {/* Purpose & submit */}
-                <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
-                  <h3 className="text-sm font-bold text-slate-700 flex items-center gap-2">
-                    <BookMarked className="w-4 h-4 text-purple-600" />{" "}
-                    Reservation Details
-                  </h3>
-
-                  {selectedSeat && (
-                    <div className="flex items-center gap-2 p-3 rounded-xl bg-amber-50 border border-amber-200">
-                      <CheckCircle className="w-4 h-4 text-amber-600 shrink-0" />
-                      <p className="text-sm text-amber-800 font-medium">
-                        Seat <strong>#{selectedSeat}</strong> selected in{" "}
-                        <strong>{selectedLab.name}</strong>
-                      </p>
-                    </div>
-                  )}
-
-                  <div>
-                    <label className="text-xs text-slate-500 font-medium block mb-1">
-                      Purpose / Subject
-                    </label>
-                    <select
-                      value={purpose}
-                      onChange={(e) => setPurpose(e.target.value)}
-                      className="w-full border border-slate-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300"
-                    >
-                      {PURPOSES.map((p) => (
-                        <option key={p} value={p}>
-                          {p}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {error && (
-                    <div className="flex items-center gap-2 p-3 rounded-xl bg-red-50 border border-red-200">
-                      <XCircle className="w-4 h-4 text-red-500 shrink-0" />
-                      <p className="text-sm text-red-700">{error}</p>
-                    </div>
-                  )}
-
-                  <button
-                    onClick={handleSubmit}
-                    disabled={submitting || !selectedSeat}
-                    className="w-full py-3 rounded-xl text-white font-semibold text-sm transition-all
-                      disabled:opacity-50 disabled:cursor-not-allowed hover:-translate-y-0.5 flex items-center justify-center gap-2"
-                    style={{
-                      background: "linear-gradient(135deg, #240d48, #5428a8)",
-                    }}
-                  >
-                    {submitting ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />{" "}
-                        Submitting...
-                      </>
-                    ) : (
-                      "Submit Reservation"
-                    )}
-                  </button>
+                     </div>
+                   )}
                 </div>
               </div>
             )}
 
-            {/* ── STEP 2: Success ── */}
             {step === 2 && (
-              <div className="flex flex-col items-center justify-center py-16 fade-up">
-                <div className="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center mb-5 shadow-lg shadow-emerald-200">
-                  <CheckCircle className="w-10 h-10 text-emerald-600" />
-                </div>
-                <h2 className="text-2xl font-bold text-slate-900">
-                  Reservation Submitted!
-                </h2>
-                <p className="text-slate-500 mt-2 text-sm max-w-sm text-center">
-                  Your reservation #{successId} is pending admin approval.
-                  You'll be notified once confirmed.
-                </p>
-                <div className="mt-8 flex gap-3">
-                  <button
-                    onClick={resetFlow}
-                    className="px-5 py-2.5 rounded-xl border border-slate-300 text-slate-700 text-sm font-semibold hover:bg-slate-100"
-                  >
-                    New Reservation
-                  </button>
-                  <button
-                    onClick={() => {
-                      setTab("mine");
-                      resetFlow();
-                      fetchMyReservations();
-                    }}
-                    className="px-5 py-2.5 rounded-xl text-white text-sm font-semibold"
-                    style={{
-                      background: "linear-gradient(135deg, #240d48, #5428a8)",
-                    }}
-                  >
-                    View My Reservations
-                  </button>
-                </div>
-              </div>
+               <div className="bg-white dark:bg-slate-900 rounded-3xl p-10 text-center shadow-xl max-w-md mx-auto animate-in zoom-in duration-300">
+                  <CheckCircle size={48} className="text-emerald-500 mx-auto mb-6" />
+                  <h2 className="text-xl font-bold mb-2">Request Filed</h2>
+                  <p className="text-xs text-slate-500 mb-8 font-medium italic">Reservation #{successId} is pending approval.</p>
+                  <div className="flex gap-2 justify-center"><button onClick={() => setStep(0)} className="px-6 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 text-[10px] font-black uppercase tracking-widest">New</button><button onClick={() => { setTab("mine"); fetchMyReservations(); }} className="px-6 py-2 rounded-xl bg-[#381872] text-white text-[10px] font-black uppercase tracking-widest">History</button></div>
+               </div>
             )}
-          </>
+          </div>
         )}
 
-        {/* ══════════ MY RESERVATIONS TAB ══════════ */}
         {tab === "mine" && (
-          <div className="space-y-4 fade-up">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-bold text-slate-800">
-                My Reservations
-              </h2>
-              <button
-                onClick={fetchMyReservations}
-                disabled={myResLoading}
-                className="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 text-sm hover:bg-slate-100 disabled:opacity-60 flex items-center gap-1.5"
-              >
-                {myResLoading ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                ) : null}
-                Refresh
-              </button>
-            </div>
-
-            {myResLoading && myReservations.length === 0 ? (
-              <div className="flex items-center justify-center py-16">
-                <Loader2 className="w-8 h-8 text-purple-600 animate-spin" />
-              </div>
-            ) : myReservations.length === 0 ? (
-              <div className="flex flex-col items-center py-16 text-center">
-                <CalendarDays className="w-12 h-12 text-slate-300 mb-3" />
-                <p className="text-slate-500 font-medium">
-                  No reservations yet
-                </p>
-                <p className="text-slate-400 text-sm mt-1">
-                  Go to "New Reservation" to book a computer seat.
-                </p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-                {myReservations.map((r) => (
-                  <div
-                    key={r.reservation_id}
-                    className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow"
-                  >
-                    <div className="flex items-start justify-between mb-3">
-                      <div>
-                        <span className="text-xs text-slate-400 font-medium">
-                          #{r.reservation_id}
-                        </span>
-                        <h4 className="text-base font-bold text-slate-900 mt-0.5">
-                          {r.lab}
-                        </h4>
-                      </div>
-                      <span
-                        className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${STATUS_COLORS[r.status] || STATUS_COLORS.pending}`}
-                      >
-                        {r.status.charAt(0).toUpperCase() + r.status.slice(1)}
-                      </span>
-                    </div>
-                    <div className="space-y-1.5 text-sm text-slate-600">
-                      <div className="flex items-center gap-2">
-                        <Monitor className="w-3.5 h-3.5 text-purple-500 shrink-0" />
-                        <span>
-                          Seat <strong>#{r.seat_number}</strong>
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <CalendarDays className="w-3.5 h-3.5 text-purple-500 shrink-0" />
-                        <span>{r.reserved_date}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Clock className="w-3.5 h-3.5 text-purple-500 shrink-0" />
-                        <span className="text-xs">{r.time_slot}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <BookMarked className="w-3.5 h-3.5 text-purple-500 shrink-0" />
-                        <span className="truncate">{r.purpose}</span>
-                      </div>
-                    </div>
-                    {r.status === "pending" && (
-                      <button
-                        onClick={() => handleCancel(r.reservation_id)}
-                        disabled={cancellingId === r.reservation_id}
-                        className="mt-4 w-full py-2 rounded-xl border border-red-200 text-red-600 text-xs font-semibold
-                          hover:bg-red-50 disabled:opacity-60 flex items-center justify-center gap-1.5"
-                      >
-                        {cancellingId === r.reservation_id ? (
-                          <>
-                            <Loader2 className="w-3.5 h-3.5 animate-spin" />{" "}
-                            Cancelling...
-                          </>
-                        ) : (
-                          <>
-                            <X className="w-3.5 h-3.5" /> Cancel Reservation
-                          </>
-                        )}
-                      </button>
-                    )}
-                  </div>
+          <div className="space-y-6 animate-in fade-in duration-300">
+             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                {[{l: "Total", v: stats.total, i: History, c: "text-violet-400"}, {l: "Pending", v: stats.pending, i: Clock, c: "text-amber-400"}, {l: "Active", v: stats.approved, i: CheckCircle, c: "text-emerald-400"}, {l: "Done", v: stats.completed, i: CheckCircle2, c: "text-purple-400"}].map((s, idx) => (
+                   <div key={idx} className="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-100 dark:border-slate-800 shadow-sm flex items-center gap-3"><div className={`w-8 h-8 rounded-lg bg-slate-50 dark:bg-slate-950 flex items-center justify-center ${s.c}`}><s.i size={16} /></div><div><p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{s.l}</p><p className="text-base font-bold">{s.v}</p></div></div>
                 ))}
-              </div>
-            )}
+             </div>
+             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {myResLoading && myReservations.length === 0 ? Array.from({ length: 4 }).map((_, i) => <div key={i} className="animate-pulse bg-white dark:bg-slate-900 rounded-2xl h-32 border border-slate-100 dark:border-slate-800" />) : myReservations.map(r => (
+                   <div key={r.reservation_id} className="bg-white dark:bg-slate-900 border p-5 rounded-2xl shadow-sm hover:shadow-lg transition-all relative overflow-hidden group flex flex-col">
+                      <div className="flex justify-between items-start mb-4"><span className="text-[10px] font-black text-slate-400 uppercase">#{r.reservation_id}</span><span className={`text-[8px] font-black px-2 py-0.5 rounded uppercase ${STATUS_COLORS[r.status]}`}>{r.status}</span></div>
+                      <h4 className="text-sm font-bold text-[#381872] dark:text-white line-clamp-1 mb-4">{r.lab}</h4>
+                      <div className="space-y-1.5 mb-6 flex-1"><div className="flex items-center gap-2 text-[10px] font-bold text-slate-500"><Monitor size={12} className="text-violet-400" /> Seat {r.seat_number}</div><div className="flex items-center gap-2 text-[10px] font-bold text-slate-500"><CalendarDays size={12} className="text-violet-400" /> {r.reserved_date}</div></div>
+                      {r.status === "pending" && <button onClick={() => handleCancel(r.reservation_id)} className="w-full py-2 bg-red-50 dark:bg-red-950/20 text-red-600 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all">Cancel</button>}
+                   </div>
+                ))}
+             </div>
           </div>
         )}
       </section>
