@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import AdminNavigationBar from "../component/adminNavigationBar";
-import { Search, X } from "lucide-react";
+import { Search, X, Users, ChevronLeft, ChevronRight, Monitor, Info, ChevronDown } from "lucide-react";
 
 
 const PURPOSE_OPTIONS = [
@@ -29,8 +29,22 @@ export default function AdminStudentsPage() {
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [purpose, setPurpose] = useState(PURPOSE_OPTIONS[0]);
   const [labRoom, setLabRoom] = useState("");
+  const [pcNumber, setPcNumber] = useState("");
+  const [labs, setLabs] = useState([]);
   const [actionLoading, setActionLoading] = useState(false);
   const [modalError, setModalError] = useState("");
+
+  const fetchLabs = async () => {
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/labsSoftware.php`);
+      const json = await res.json();
+      if (res.ok) {
+        setLabs(json.labs || []);
+      }
+    } catch {
+      // silent
+    }
+  };
 
   const fetchStudents = async (targetPage = 1, targetQuery = searchQuery) => {
     setLoading(true);
@@ -62,6 +76,7 @@ export default function AdminStudentsPage() {
 
   useEffect(() => {
     fetchStudents(1, "");
+    fetchLabs();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -74,7 +89,8 @@ export default function AdminStudentsPage() {
   const openSitInModal = (student) => {
     setSelectedStudent(student);
     setPurpose(PURPOSE_OPTIONS[0]);
-    setLabRoom("");
+    setLabRoom(labs.length > 0 ? labs[0].lab_name : "");
+    setPcNumber("");
     setModalError("");
   };
 
@@ -82,6 +98,10 @@ export default function AdminStudentsPage() {
     if (!selectedStudent) return;
     if (!labRoom.trim()) {
       setModalError("Please provide a lab room number.");
+      return;
+    }
+    if (!pcNumber.trim()) {
+      setModalError("Please provide a PC number.");
       return;
     }
 
@@ -99,6 +119,7 @@ export default function AdminStudentsPage() {
             name: selectedStudent.full_name,
             purpose,
             lab: labRoom.trim(),
+            pc_number: pcNumber.trim(),
           }),
         },
       );
@@ -119,19 +140,20 @@ export default function AdminStudentsPage() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-50 text-slate-800 p-4 sm:p-6 md:pl-72">
+    <main className="min-h-screen bg-[#fef7ff] dark:bg-slate-950 text-slate-800 dark:text-slate-200 font-['Montserrat'] md:pl-64 transition-colors duration-300">
       <AdminNavigationBar />
 
-      <section className="max-w-7xl mx-auto mt-16 md:mt-0 space-y-6">
-        <div className="rounded-2xl bg-gradient-to-r from-purple-800 to-purple-700 text-white p-6 sm:p-8 shadow-lg">
-          <p className="text-purple-100 text-sm">Admin • Students</p>
-          <h1 className="text-2xl sm:text-3xl font-bold mt-1">Student Records</h1>
-          <p className="text-purple-100 mt-2 text-sm sm:text-base">
-            Search students by ID, review their details, and open sit-in action modal.
+      <section className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-12 space-y-6">
+        <header className="px-2">
+          <h1 className="text-4xl md:text-5xl font-bold text-[#381872] dark:text-violet-300 tracking-tight">
+            Student Records.
+          </h1>
+          <p className="text-lg text-slate-500 dark:text-slate-400 mt-2 font-medium">
+            Query identities, audit quotas, and initiate laboratory sessions.
           </p>
-        </div>
+        </header>
 
-        <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-5">
+        <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl shadow-sm p-4">
           <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-3">
             <div className="relative">
               <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -142,72 +164,85 @@ export default function AdminStudentsPage() {
                 onKeyDown={(e) => {
                   if (e.key === "Enter") handleSearch();
                 }}
-                placeholder="Search by student ID number"
-                className="w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-300"
+                placeholder="Query by Student ID..."
+                className="w-full pl-10 pr-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-300 dark:focus:ring-purple-900 transition-all"
               />
             </div>
             <button
               onClick={handleSearch}
               disabled={loading}
-              className="px-5 py-2.5 rounded-lg bg-purple-600 text-white font-medium hover:bg-purple-700 disabled:opacity-60"
+              className="px-6 py-2 rounded-xl bg-[#381872] dark:bg-violet-800 text-white text-xs font-black uppercase tracking-widest hover:bg-[#220055] disabled:opacity-60 transition-all active:scale-95 shadow-sm"
             >
-              {loading ? "Searching..." : "Search"}
+              {loading ? "SEARCHING..." : "SEARCH"}
             </button>
           </div>
         </div>
 
-        <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-          <div className="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
-            <h2 className="text-lg font-bold text-slate-900">Students</h2>
-            <span className="text-xs px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200 font-semibold">
-              Total: {total}
+        <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden">
+          <div className="px-5 py-3 border-b border-slate-50 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/20">
+            <h2 className="text-sm font-bold text-[#381872] dark:text-white flex items-center gap-2">
+               <Users className="w-4 h-4 text-violet-500" />
+               Index
+            </h2>
+            <span className="text-[10px] font-black px-2.5 py-1 rounded-full bg-white dark:bg-slate-950 text-[#381872] dark:text-violet-300 shadow-sm uppercase tracking-tighter">
+              {total} TOTAL ENTRIES
             </span>
           </div>
 
-          {error && <p className="px-5 pt-4 text-sm text-red-600">{error}</p>}
+          {error && <p className="px-5 pt-4 text-xs font-bold text-red-600 dark:text-red-400">{error}</p>}
 
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[900px] text-sm">
-              <thead className="bg-slate-50 text-slate-600">
+            <table className="w-full min-w-[800px] text-xs">
+              <thead className="bg-slate-50 dark:bg-slate-950 text-slate-400 dark:text-slate-500 border-b border-slate-100 dark:border-slate-800 uppercase">
                 <tr>
-                  <th className="text-left px-5 py-3 font-semibold">ID Number</th>
-                  <th className="text-left px-5 py-3 font-semibold">Name</th>
-                  <th className="text-left px-5 py-3 font-semibold">Year Level</th>
-                  <th className="text-left px-5 py-3 font-semibold">Course</th>
-                  <th className="text-left px-5 py-3 font-semibold">Remaining Session</th>
-                  <th className="text-left px-5 py-3 font-semibold">Actions</th>
+                  <th className="text-left px-5 py-4 font-black tracking-widest">ID Identity</th>
+                  <th className="text-left px-5 py-4 font-black tracking-widest">Full Name</th>
+                  <th className="text-left px-5 py-4 font-black tracking-widest">Level</th>
+                  <th className="text-left px-5 py-4 font-black tracking-widest">Program</th>
+                  <th className="text-left px-5 py-4 font-black tracking-widest text-center">Remaining</th>
+                  <th className="text-right px-5 py-4 font-black tracking-widest">Operations</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200">
+              <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
                 {students.length === 0 ? (
                   <tr>
-                    <td className="px-5 py-8 text-slate-500" colSpan={6}>
-                      {loading ? "Loading students..." : "No student records found."}
+                    <td className="px-5 py-10 text-slate-500 dark:text-slate-400 text-center" colSpan={6}>
+                      {loading ? "ACCESSING DATABASE..." : "NO RECORDS MATCH YOUR QUERY."}
                     </td>
                   </tr>
                 ) : (
                   students.map((student) => (
-                    <tr key={student.id_number} className="hover:bg-purple-50/40">
-                      <td className="px-5 py-3 text-slate-800 font-medium">{student.id_number}</td>
-                      <td className="px-5 py-3 text-slate-700">{student.full_name}</td>
-                      <td className="px-5 py-3 text-slate-700">{student.year_level}</td>
-                      <td className="px-5 py-3 text-slate-700">{student.course}</td>
-                      <td className="px-5 py-3">
-                        <span className="text-xs px-2 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200 font-semibold">
+                  <tr key={student.id_number} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors group">
+                      <td className="px-5 py-3 text-slate-900 dark:text-white font-black">{student.id_number}</td>
+                      <td className="px-5 py-3 text-slate-700 dark:text-slate-300 font-bold">{student.full_name}</td>
+                      <td className="px-5 py-3 text-slate-500 dark:text-slate-400">{student.year_level}</td>
+                      <td className="px-5 py-3 text-slate-600 dark:text-slate-400">
+                         <span className="bg-violet-50 dark:bg-violet-900/20 text-[#381872] dark:text-violet-300 px-2 py-0.5 rounded-lg border border-transparent group-hover:border-violet-100 dark:group-hover:border-violet-900 transition-all font-bold">
+                            {student.course}
+                         </span>
+                      </td>
+                      <td className="px-5 py-3 text-center">
+                        <span className="text-[10px] font-black px-2 py-1 rounded-lg bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 border border-amber-100 dark:border-amber-800/50 shadow-sm">
                           {student.remainingSessions}
                         </span>
                       </td>
-                      <td className="px-5 py-3">
+                      <td className="px-5 py-3 text-right">
                         <button
                           onClick={() => openSitInModal(student)}
                           disabled={Number(student.isInSession) === 1 || Number(student.remainingSessions) <= 0}
-                          className="px-3 py-1.5 rounded-lg bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-50"
+                          className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 ${
+                            Number(student.isInSession) === 1
+                              ? "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400"
+                              : Number(student.remainingSessions) <= 0
+                                ? "bg-slate-100 dark:bg-slate-800 text-slate-400"
+                                : "bg-[#381872] dark:bg-violet-800 text-white hover:bg-[#220055] dark:hover:bg-violet-700 shadow-sm"
+                          }`}
                         >
                           {Number(student.isInSession) === 1
-                            ? "In Session"
+                            ? "IN SESSION"
                             : Number(student.remainingSessions) <= 0
-                              ? "No Session Left"
-                              : "Sit-In"}
+                              ? "VOID"
+                              : "SIT IN"}
                         </button>
                       </td>
                     </tr>
@@ -217,110 +252,121 @@ export default function AdminStudentsPage() {
             </table>
           </div>
 
-          <div className="px-5 py-4 border-t border-slate-200 flex items-center justify-between">
-            <p className="text-xs text-slate-500">
-              Page {page} of {totalPages}
-            </p>
+          <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/30 dark:bg-slate-900/50">
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Page {page} / {totalPages}</p>
             <div className="flex gap-2">
-              <button
-                onClick={() => fetchStudents(page - 1)}
-                disabled={page <= 1 || loading}
-                className="px-3 py-1.5 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100 disabled:opacity-50"
-              >
-                Previous
-              </button>
-              <button
-                onClick={() => fetchStudents(page + 1)}
-                disabled={page >= totalPages || loading}
-                className="px-3 py-1.5 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100 disabled:opacity-50"
-              >
-                Next
-              </button>
+              <button onClick={() => fetchStudents(page - 1)} disabled={page <= 1 || loading} className="p-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-[#381872] dark:hover:text-violet-300 transition-colors disabled:opacity-50"><ChevronLeft size={16} /></button>
+              <button onClick={() => fetchStudents(page + 1)} disabled={page >= totalPages || loading} className="p-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-[#381872] dark:hover:text-violet-300 transition-colors disabled:opacity-50"><ChevronRight size={16} /></button>
             </div>
           </div>
         </div>
       </section>
 
       {selectedStudent && (
-        <div className="fixed inset-0 z-50 bg-black/40 p-4 flex items-center justify-center">
-          <div className="w-full max-w-2xl bg-white rounded-2xl shadow-xl overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
-              <h3 className="text-lg font-bold text-slate-900">Student Sit-In</h3>
-              <button
-                onClick={() => setSelectedStudent(null)}
-                className="text-slate-500 hover:text-slate-800"
-              >
+        <div className="fixed inset-0 z-50 bg-black/40 p-4 flex items-center justify-center backdrop-blur-sm">
+          <div className="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in duration-200 border border-slate-100 dark:border-slate-800">
+            <div className="px-8 py-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-gradient-to-r from-[#381872] to-[#6c44c1] text-white">
+              <h3 className="text-xl font-bold flex items-center gap-3">
+                 <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
+                    <Monitor size={20} />
+                 </div>
+                 Initiate Laboratory Session
+              </h3>
+              <button onClick={() => setSelectedStudent(null)} className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="px-6 py-5 space-y-4">
-              {modalError && <p className="text-sm text-red-600">{modalError}</p>}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="px-8 py-8 space-y-6">
+              {modalError && (
+                <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 text-red-700 dark:text-red-400 text-xs font-bold uppercase tracking-tight">
+                   <Info size={16} /> {modalError}
+                </div>
+              )}
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="text-xs font-semibold text-slate-500 uppercase">ID Number</label>
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 block">Student ID</label>
                   <input
                     value={selectedStudent.id_number}
                     readOnly
-                    className="mt-1 w-full px-3 py-2.5 border border-slate-300 rounded-lg bg-slate-100 text-slate-700"
+                    className="w-full px-5 py-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 text-slate-900 dark:text-white font-bold"
                   />
                 </div>
 
                 <div>
-                  <label className="text-xs font-semibold text-slate-500 uppercase">Name</label>
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 block">Student Name</label>
                   <input
                     value={selectedStudent.full_name}
                     readOnly
-                    className="mt-1 w-full px-3 py-2.5 border border-slate-300 rounded-lg bg-slate-100 text-slate-700"
+                    className="w-full px-5 py-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 text-slate-900 dark:text-white font-bold"
                   />
                 </div>
 
                 <div>
-                  <label className="text-xs font-semibold text-slate-500 uppercase">Purpose</label>
-                  <select
-                    value={purpose}
-                    onChange={(e) => setPurpose(e.target.value)}
-                    className="mt-1 w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-300"
-                  >
-                    {PURPOSE_OPTIONS.map((option) => (
-                      <option key={option} value={option}>
-                        {option}
-                      </option>
-                    ))}
-                  </select>
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 block">Laboratory Subject</label>
+                  <div className="relative">
+                    <select
+                      value={purpose}
+                      onChange={(e) => setPurpose(e.target.value)}
+                      className="w-full px-5 py-3 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[#381872] dark:text-violet-300 font-bold focus:outline-none focus:ring-2 focus:ring-purple-300 dark:focus:ring-purple-900 appearance-none"
+                    >
+                      {PURPOSE_OPTIONS.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown size={16} className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                  </div>
                 </div>
 
                 <div>
-                  <label className="text-xs font-semibold text-slate-500 uppercase">Lab Room Number</label>
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 block">Terminal Assignment</label>
+                  <div className="relative">
+                    <select
+                      value={labRoom}
+                      onChange={(e) => setLabRoom(e.target.value)}
+                      className="w-full px-5 py-3 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-bold focus:outline-none focus:ring-2 focus:ring-purple-300 dark:focus:ring-purple-900 appearance-none"
+                    >
+                      <option value="">Select Laboratory...</option>
+                      {labs.map((l) => (
+                        <option key={l.lab_id} value={l.lab_name}>
+                          {l.lab_name}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown size={16} className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 block">PC Number</label>
                   <input
-                    value={labRoom}
-                    onChange={(e) => setLabRoom(e.target.value)}
-                    placeholder="e.g. Lab 3"
-                    className="mt-1 w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-300"
+                    value={pcNumber}
+                    onChange={(e) => setPcNumber(e.target.value)}
+                    placeholder="e.g. PC-01"
+                    className="w-full px-5 py-3 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-bold focus:outline-none focus:ring-2 focus:ring-purple-300 dark:focus:ring-purple-900"
                   />
                 </div>
               </div>
 
-              <div className="rounded-lg bg-amber-50 border border-amber-200 px-4 py-3">
-                <p className="text-sm text-amber-800">
-                  Remaining Sessions: <span className="font-bold">{selectedStudent.remainingSessions}</span>
-                </p>
+              <div className="rounded-2xl bg-[#381872]/5 dark:bg-violet-900/10 border border-[#381872]/10 dark:border-violet-900/30 px-6 py-4 flex items-center justify-between">
+                <p className="text-xs font-bold text-[#381872] dark:text-violet-300 uppercase tracking-widest">Remaining Quota</p>
+                <span className="text-lg font-black text-[#381872] dark:text-violet-300">{selectedStudent.remainingSessions} SESSIONS</span>
               </div>
             </div>
 
-            <div className="px-6 py-4 border-t border-slate-200 flex justify-end gap-2">
-              <button
-                onClick={() => setSelectedStudent(null)}
-                className="px-4 py-2 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100"
-              >
-                Cancel
+            <div className="px-8 py-5 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3 bg-slate-50/50 dark:bg-slate-800/20">
+              <button onClick={() => setSelectedStudent(null)} className="px-6 py-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 text-slate-500 font-bold text-xs uppercase tracking-widest hover:bg-white dark:hover:bg-slate-900 transition-all">
+                ABORT
               </button>
               <button
                 onClick={confirmSitIn}
                 disabled={actionLoading}
-                className="px-4 py-2 rounded-lg bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-60"
+                className="px-8 py-2.5 rounded-2xl bg-[#381872] dark:bg-violet-800 text-white font-black text-xs uppercase tracking-widest hover:bg-[#220055] dark:hover:bg-violet-700 disabled:opacity-60 transition-all shadow-md active:scale-95"
               >
-                {actionLoading ? "Starting..." : "Confirm"}
+                {actionLoading ? "PROCESSING..." : "ACTIVATE SESSION"}
               </button>
             </div>
           </div>
