@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS sit_in_sessions (
     name VARCHAR(255) NOT NULL,
     purpose VARCHAR(255) NOT NULL,
     lab VARCHAR(100) NOT NULL,
+    pc_number VARCHAR(50) NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'in_session',
     started_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     ended_at TIMESTAMP NULL DEFAULT NULL,
@@ -327,6 +328,23 @@ SET @sql = (
         ),
         'SELECT 1',
         'ALTER TABLE sit_in_sessions ADD INDEX idx_sit_in_id_number (id_number)'
+    )
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @sql = (
+    SELECT IF(
+        EXISTS (
+            SELECT 1
+            FROM information_schema.columns
+            WHERE table_schema = DATABASE()
+              AND table_name = 'sit_in_sessions'
+              AND column_name = 'pc_number'
+        ),
+        'SELECT 1',
+        'ALTER TABLE sit_in_sessions ADD COLUMN pc_number VARCHAR(50) NULL AFTER lab'
     )
 );
 PREPARE stmt FROM @sql;
