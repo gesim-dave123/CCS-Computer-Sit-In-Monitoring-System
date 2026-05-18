@@ -33,11 +33,16 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 }
 
 try {
+    // Check if pc_number column exists
+    $checkCol = $pdo->query("SHOW COLUMNS FROM sit_in_sessions LIKE 'pc_number'")->fetch();
+    $pcCol = $checkCol ? "s.pc_number," : "NULL AS pc_number,";
+
     $currentStmt = $pdo->query(
         "SELECT s.sitIn_id, s.id_number,
                 COALESCE(CONCAT(u.first_name, ' ', u.last_name), s.name) AS name,
                 s.purpose,
                 COALESCE(l.lab_name, s.lab) AS lab,
+                $pcCol
                 s.status, s.started_at, s.ended_at
          FROM sit_in_sessions s
          LEFT JOIN users u ON s.id_number = u.id_number
@@ -52,6 +57,7 @@ try {
                 COALESCE(CONCAT(u.first_name, ' ', u.last_name), s.name) AS name,
                 s.purpose,
                 COALESCE(l.lab_name, s.lab) AS lab,
+                $pcCol
                 s.status, s.started_at, s.ended_at
          FROM sit_in_sessions s
          LEFT JOIN users u ON s.id_number = u.id_number
