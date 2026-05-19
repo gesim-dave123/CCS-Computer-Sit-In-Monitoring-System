@@ -1,80 +1,147 @@
 
 import "../App.css";
 
-const FEATURES = [
-    {
-        icon: (
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className="w-6 h-6">
-                <path strokeLinecap="round" strokeLinejoin="round"
-                    d="M5.25 7.5A2.25 2.25 0 017.5 5.25h9a2.25 2.25 0 012.25 2.25v9a2.25 2.25 0 01-2.25 2.25h-9a2.25 2.25 0 01-2.25-2.25v-9z" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75" />
-            </svg>
-        ),
-        title: "Real-Time Monitoring",
-        desc: "Track all sit-in sessions live with instant status updates across every workstation, no refresh needed.",
-        accent: "#5b2d8e",
-    },
-    {
-        icon: (
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className="w-6 h-6">
-                <path strokeLinecap="round" strokeLinejoin="round"
-                    d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM12.75 3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v16.5c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V3.375zM6.75 9.75c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v10.125c0 .621-.504 1.125-1.125 1.125H7.875A1.125 1.125 0 016.75 19.875V9.75z" />
-            </svg>
-        ),
-        title: "Usage Analytics",
-        desc: "Detailed reports on lab occupancy, peak usage hours, and student activity patterns for smarter decisions.",
-        accent: "#c9973a",
-    },
-    {
-        icon: (
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className="w-6 h-6">
-                <path strokeLinecap="round" strokeLinejoin="round"
-                    d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
-            </svg>
-        ),
-        title: "Student Management",
-        desc: "Register, identify, and manage students via seamless ID-based check-in with complete session history.",
-        accent: "#5b2d8e",
-    },
-    {
-        icon: (
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className="w-6 h-6">
-                <path strokeLinecap="round" strokeLinejoin="round"
-                    d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
-            </svg>
-        ),
-        title: "Smart Alerts",
-        desc: "Automated notifications for computer lab announcements.",
-        accent: "#c9973a",
-    },
-];
 export default function Features() {
+  return (
+    <section id="features" className="py-20 px-4 bg-[#f8f1fa] dark:bg-slate-900">
+      <div className="max-w-[1400px] mx-auto">
+        <div className="text-center mb-16">
+          <h2 className="font-['Montserrat'] text-3xl md:text-4xl font-bold text-[#220055] dark:text-slate-100 mb-4">
+            Intelligent System Features
+          </h2>
+          <p className="font-['Montserrat'] text-base text-[#494551] dark:text-slate-400 max-w-2xl mx-auto">
+            Everything you need to manage laboratory resources, track student
+            attendance, and maintain operational efficiency in one cohesive
+            platform.
+          </p>
+        </div>
 
-    return (
-        <section id="features" className="max-w-6xl mx-auto px-6 py-28">
-            {/* Section label */}
-            <div className="text-center mb-16">
-
-                <h2 className="font-extrabold leading-tight text-slate-900" style={{ fontSize: "clamp(1.8rem, 4vw, 2.8rem)" }}>
-                    Everything you need to run a{" "}
-                    <span className="text-purple-800">smarter lab.</span>
-                </h2>
-                <p className="mt-4 text-base font-medium max-w-xl mx-auto text-slate-500">
-                    Built specifically for university CCS labs, combining ease-of-use
-                    with powerful management tools.
-                </p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Feature 1: Large Card */}
+          <div className="md:col-span-2 bg-white dark:bg-slate-800 rounded-2xl p-8 border border-[#cbc4d2]/30 dark:border-slate-700 shadow-[0_10px_30px_rgba(56,24,114,0.03)] hover:shadow-[0_15px_40px_rgba(56,24,114,0.08)] transition-shadow duration-300 flex flex-col justify-between overflow-hidden relative group">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-[#eaddff]/30 dark:bg-[#381872]/20 rounded-full blur-3xl -mr-20 -mt-20 z-0"></div>
+            <div className="relative z-10">
+              <div className="w-12 h-12 rounded-xl bg-[#381872] dark:bg-[#6c44c1] text-[#a385e2] dark:text-purple-100 flex items-center justify-center mb-6">
+                <span
+                  className="material-symbols-outlined"
+                  style={{ fontVariationSettings: '"FILL" 1' }}
+                >
+                  monitoring
+                </span>
+              </div>
+              <h3 className="font-['Montserrat'] text-2xl font-semibold text-[#220055] dark:text-slate-100 mb-3">
+                Real-Time Monitoring
+              </h3>
+              <p className="font-['Montserrat'] text-base text-[#494551] dark:text-slate-400 mb-6 max-w-md">
+                Track active sit-in sessions with live updates. Identify vacant
+                stations instantly and optimize laboratory utilization without
+                physical inspection.
+              </p>
             </div>
-
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {FEATURES.map((f, i) => (
-                    <div key={i} className="feature-card rounded-2xl p-7 bg-white border border-slate-200 shadow-sm">
-                        <div className="feature-icon-wrap" style={{ color: f.accent }}>{f.icon}</div>
-                        <h3 className="font-bold text-lg mb-2 text-slate-900">{f.title}</h3>
-                        <p className="text-sm font-medium leading-relaxed text-slate-500">{f.desc}</p>
-                    </div>
-                ))}
+            <div className="relative z-10 mt-auto pt-8 border-t border-[#e7e0e9] dark:border-slate-700">
+              <div className="w-full h-48 bg-slate-100 dark:bg-slate-900 rounded-xl flex items-center justify-center overflow-hidden">
+                <img
+                  alt="Real-time monitoring"
+                  className="w-full h-full object-cover opacity-80 dark:opacity-60"
+                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuDrCVwAmdCZm1ndiTbV9sNwMK_lq3sxCIEThf-nHzHPokDbDeRSLzmlg_og5b7Ec2RnfbnZxmuxmoj-FYnPYSJJeRaRyLhPfajjIQz1Lk4GVNQGqUU9AItHA_CIpobFzVDgwod6juK7V5jU4TPPHOydR3eBny0nYrsD5VmGBLRI8cp5-n5Ul_qviYAO4fRN6vzWE5kObJHXg3gaWWbMo0DT6GIUuNUALrF4QdFCnGnyJp3ZwroUxGuYdYsYJPD1GKvJCjdXRC0wCp4"
+                />
+              </div>
             </div>
-        </section>
-    );
+          </div>
 
+          {/* Feature 2: Tall Card */}
+          <div className="bg-white dark:bg-slate-800 rounded-2xl p-8 border border-[#cbc4d2]/30 dark:border-slate-700 shadow-[0_10px_30px_rgba(56,24,114,0.03)] hover:shadow-[0_15px_40px_rgba(56,24,114,0.08)] transition-shadow duration-300 flex flex-col relative overflow-hidden">
+            <div className="w-12 h-12 rounded-xl bg-[#ffdeab] dark:bg-[#5f4100] text-[#5f4100] dark:text-[#ffdeab] flex items-center justify-center mb-6 z-10 relative">
+              <span
+                className="material-symbols-outlined"
+                style={{ fontVariationSettings: '"FILL" 1' }}
+              >
+                history_edu
+              </span>
+            </div>
+            <h3 className="font-['Montserrat'] text-2xl font-semibold text-[#220055] dark:text-slate-100 mb-3 z-10 relative">
+              Automated Logging
+            </h3>
+            <p className="font-['Montserrat'] text-base text-[#494551] dark:text-slate-400 mb-8 z-10 relative">
+              Every session is meticulously recorded. Access historical logs, track student sit-in hours, and maintain a digital trail of laboratory activity.
+            </p>
+            <div className="mt-auto relative z-10 flex justify-center">
+               <div className="w-full space-y-2 opacity-20">
+                  <div className="h-2 bg-slate-300 dark:bg-slate-600 rounded w-full"></div>
+                  <div className="h-2 bg-slate-300 dark:bg-slate-600 rounded w-5/6"></div>
+                  <div className="h-2 bg-slate-300 dark:bg-slate-600 rounded w-4/6"></div>
+               </div>
+            </div>
+          </div>
+
+          {/* Feature 3: Standard Card */}
+          <div className="bg-white dark:bg-slate-800 rounded-2xl p-8 border border-[#cbc4d2]/30 dark:border-slate-700 shadow-[0_10px_30px_rgba(56,24,114,0.03)] hover:shadow-[0_15px_40px_rgba(56,24,114,0.08)] transition-shadow duration-300">
+            <div className="w-12 h-12 rounded-xl bg-[#e7e0e9] dark:bg-slate-700 text-[#1d1b20] dark:text-slate-200 flex items-center justify-center mb-6">
+              <span
+                className="material-symbols-outlined"
+                style={{ fontVariationSettings: '"FILL" 1' }}
+              >
+                groups
+              </span>
+            </div>
+            <h3 className="font-['Montserrat'] text-xl font-semibold text-[#220055] dark:text-slate-100 mb-3">
+              Student Management
+            </h3>
+            <p className="font-['Montserrat'] text-sm text-[#494551] dark:text-slate-400">
+              Maintain detailed profiles for every student. Track remaining
+              sit-in hours, disciplinary records, and laboratory access
+              privileges securely.
+            </p>
+          </div>
+
+          {/* Feature 4: Medium Card */}
+          <div className="bg-white dark:bg-slate-800 rounded-2xl p-8 border border-[#cbc4d2]/30 dark:border-slate-700 shadow-[0_10px_30px_rgba(56,24,114,0.03)] hover:shadow-[0_15px_40px_rgba(56,24,114,0.08)] transition-shadow duration-300 md:col-span-2 flex items-center gap-8">
+            <div className="flex-1">
+              <div className="w-12 h-12 rounded-xl bg-[#ffdad6] dark:bg-red-950/50 text-[#ba1a1a] dark:text-red-400 flex items-center justify-center mb-6">
+                <span
+                  className="material-symbols-outlined"
+                  style={{ fontVariationSettings: '"FILL" 1' }}
+                >
+                  notifications_active
+                </span>
+              </div>
+              <h3 className="font-['Montserrat'] text-xl font-semibold text-[#220055] dark:text-slate-100 mb-3">
+                Smart Alerts
+              </h3>
+              <p className="font-['Montserrat'] text-sm text-[#494551] dark:text-slate-400">
+                Automated notifications for overstaying students, unauthorized
+                access attempts, or exhausted sit-in hour quotas, ensuring
+                policy compliance.
+              </p>
+            </div>
+            <div className="hidden sm:block flex-shrink-0 w-48 h-48 bg-[#e7e0e9] dark:bg-slate-700 rounded-xl p-4 flex flex-col gap-3 relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-slate-900/40"></div>
+              <div className="bg-white dark:bg-slate-800 rounded-lg p-3 shadow-sm relative z-10 flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-[#ffdad6] dark:bg-red-900 flex items-center justify-center">
+                  <span className="material-symbols-outlined text-[#ba1a1a] dark:text-red-400 text-sm">
+                    warning
+                  </span>
+                </div>
+                <div className="flex-1">
+                  <div className="h-2 bg-slate-200 dark:bg-slate-700 rounded w-3/4 mb-2"></div>
+                  <div className="h-2 bg-slate-200 dark:bg-slate-700 rounded w-1/2"></div>
+                </div>
+              </div>
+              <div className="bg-white dark:bg-slate-800 rounded-lg p-3 shadow-sm relative z-10 flex items-center gap-3 opacity-70">
+                <div className="w-8 h-8 rounded-full bg-[#381872] dark:bg-purple-900 flex items-center justify-center">
+                  <span className="material-symbols-outlined text-[#a385e2] dark:text-purple-300 text-sm">
+                    info
+                  </span>
+                </div>
+                <div className="flex-1">
+                  <div className="h-2 bg-slate-200 dark:bg-slate-700 rounded w-full mb-2"></div>
+                  <div className="h-2 bg-slate-200 dark:bg-slate-700 rounded w-2/3"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
 }

@@ -18,7 +18,7 @@ const STEPS = [
     {
         num: "04",
         title: "Review Reports",
-        desc: "At any time, export analytics and session logs to review usage trends, peak periods, and student activity.",
+        desc: "At any time, export comprehensive session logs to review usage trends, peak periods, and student activity.",
     },
 ];
 export default function HowItWorks() {
