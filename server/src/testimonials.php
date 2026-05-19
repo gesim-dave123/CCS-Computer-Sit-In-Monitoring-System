@@ -109,7 +109,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
             // Rows
             $sql = "SELECT t.testimonial_id, t.student_id, t.rating, t.category, t.comment,
-                           t.is_visible, t.created_at,
+                           t.is_visible, t.is_featured, t.created_at,
                            COALESCE(CONCAT(u.first_name, ' ', u.last_name), t.student_id) AS student_name
                     FROM testimonials t
                     LEFT JOIN users u ON t.student_id = u.id_number
@@ -170,7 +170,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                         COALESCE(u.course, '') AS course
                  FROM testimonials t
                  LEFT JOIN users u ON t.student_id = u.id_number
-                 WHERE t.is_visible = 1 AND t.is_deleted = 0
+                 WHERE t.is_featured = 1 AND t.is_deleted = 0
                  ORDER BY t.created_at DESC
                  LIMIT ?"
             );
@@ -237,6 +237,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } catch (PDOException $e) {
             http_response_code(500);
             echo json_encode(['error' => 'Failed to toggle visibility', 'details' => $e->getMessage()]);
+        }
+        exit();
+    }
+
+    // ── Admin: toggle featured status ──
+    if ($action === 'toggle_featured') {
+        $id = (int)($data['testimonial_id'] ?? 0);
+        if ($id <= 0) {
+            http_response_code(422);
+            echo json_encode(['error' => 'Testimonial ID is required']);
+            exit();
+        }
+
+        try {
+            $stmt = $pdo->prepare("UPDATE testimonials SET is_featured = NOT is_featured WHERE testimonial_id = ?");
+            $stmt->execute([$id]);
+            echo json_encode(['message' => 'Featured status toggled']);
+        } catch (PDOException $e) {
+            http_response_code(500);
+            echo json_encode(['error' => 'Failed to toggle featured status', 'details' => $e->getMessage()]);
         }
         exit();
     }

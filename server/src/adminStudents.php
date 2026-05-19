@@ -56,7 +56,10 @@ try {
             IFNULL(remaining_sessions, 30) AS remainingSessions,
             IFNULL(used_session, 0) AS usedSessions,
             IFNULL(is_in_session, 0) AS isInSession,
-            email
+            email,
+            address,
+            profilePicture,
+            created_at
          FROM users
          WHERE role = 'student'
            AND id_number LIKE ?

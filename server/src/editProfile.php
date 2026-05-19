@@ -132,9 +132,7 @@ if (
 	$firstName === '' ||
 	$lastName === '' ||
 	$email === '' ||
-	$course === '' ||
-	$address === '' ||
-	$yearLevel === ''
+	$address === ''
 ) {
 	http_response_code(422);
 	echo json_encode(["error" => "All required profile fields must be provided."]);

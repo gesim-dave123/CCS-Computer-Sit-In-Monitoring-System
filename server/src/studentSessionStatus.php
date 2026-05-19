@@ -41,13 +41,16 @@ if ($idNumber === '') {
 try {
     $stmt = $pdo->prepare(
         "SELECT
-            id_number,
-            IFNULL(remaining_sessions, 30) AS remaining_sessions,
-                        IFNULL(used_session, 0) AS used_session,
-            IFNULL(is_in_session, 0) AS is_in_session
-         FROM users
-         WHERE id_number = ?
-           AND role = 'student'
+            u.id_number,
+            IFNULL(u.remaining_sessions, 30) AS remaining_sessions,
+            IFNULL(u.used_session, 0) AS used_session,
+            IFNULL(u.is_in_session, 0) AS is_in_session,
+            (SELECT SUM(TIMESTAMPDIFF(MINUTE, started_at, ended_at)) 
+             FROM sit_in_sessions 
+             WHERE id_number = u.id_number AND ended_at IS NOT NULL) AS total_minutes
+         FROM users u
+         WHERE u.id_number = ?
+           AND u.role = 'student'
          LIMIT 1"
     );
     $stmt->execute([$idNumber]);
@@ -65,6 +68,7 @@ try {
         'remaining_sessions' => (int)$row['remaining_sessions'],
         'is_in_session' => (int)$row['is_in_session'],
         'sessions_used' => (int)$row['used_session'],
+        'total_duration_minutes' => (int)($row['total_minutes'] ?? 0),
     ]);
 } catch (PDOException $e) {
     http_response_code(500);

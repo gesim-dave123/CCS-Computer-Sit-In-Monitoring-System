@@ -24,10 +24,69 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 require_once '../config/db_connection.php';
 
+/**
+ * Automatically updates reservations that are past their scheduled time.
+ * - If a session exists for that student/lab/date: status -> 'completed'
+ * - Otherwise: status -> 'cancelled'
+ */
+function autoUpdateExpiredReservations($pdo) {
+    try {
+        $now = new DateTime();
+        $todayDate = $now->format('Y-m-d');
+        $currentTime = $now->format('H:i:s');
+
+        // Fetch pending/approved reservations for dates on or before today
+        $stmt = $pdo->prepare("SELECT * FROM reservations WHERE status IN ('pending', 'approved') AND reserved_date <= ?");
+        $stmt->execute([$todayDate]);
+        $reservations = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($reservations as $res) {
+            $isExpired = false;
+
+            if ($res['reserved_date'] < $todayDate) {
+                $isExpired = true;
+            } else {
+                // Today: Check the time slot end time
+                // Use a generic split to handle hyphens or en-dashes
+                $rawSlot = $res['time_slot'];
+                $parts = preg_split('/[–-]/u', $rawSlot);
+                if (count($parts) === 2) {
+                    $endTimeStr = trim($parts[1]); // e.g. "9:00 AM"
+                    $endTime = DateTime::createFromFormat('g:i A', $endTimeStr);
+                    if ($endTime && $currentTime > $endTime->format('H:i:s')) {
+                        $isExpired = true;
+                    }
+                }
+            }
+
+            if ($isExpired) {
+                // Check if admin created a session for this student on this date in this lab
+                $sessionStmt = $pdo->prepare(
+                    "SELECT sitIn_id FROM sit_in_sessions 
+                     WHERE id_number = ? AND lab = ? AND DATE(started_at) = ? 
+                     LIMIT 1"
+                );
+                $sessionStmt->execute([$res['id_number'], $res['lab'], $res['reserved_date']]);
+                $session = $sessionStmt->fetch();
+
+                $newStatus = $session ? 'completed' : 'cancelled';
+
+                $upd = $pdo->prepare("UPDATE reservations SET status = ? WHERE reservation_id = ?");
+                $upd->execute([$newStatus, $res['reservation_id']]);
+            }
+        }
+    } catch (Exception $e) {
+        // Log error if needed, but don't crash the entire request
+    }
+}
+
 $method = $_SERVER['REQUEST_METHOD'];
 
 // ─── GET: seat availability for a lab+date, or student's own reservations ────
 if ($method === 'GET') {
+    // Sync reservation statuses first
+    autoUpdateExpiredReservations($pdo);
+
     $lab      = trim($_GET['lab']      ?? '');
     $date     = trim($_GET['date']     ?? '');
     $idNumber = trim($_GET['id_number'] ?? '');

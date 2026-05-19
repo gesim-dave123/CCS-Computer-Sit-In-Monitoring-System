@@ -61,9 +61,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         exit();
     }
 
-    // Default: list all labs with their software
+    // Default: list all labs with their software and disabled terminals
     try {
-        $labsStmt = $pdo->query("SELECT lab_id, lab_name, room_number, seats, building, description FROM laboratories ORDER BY lab_name ASC");
+        $labsStmt = $pdo->query("SELECT lab_id, lab_name, room_number, seats, building, description, status FROM laboratories ORDER BY lab_name ASC");
         $labs = $labsStmt->fetchAll();
 
         $swStmt = $pdo->query(
@@ -85,8 +85,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             ];
         }
 
+        // Fetch disabled terminals
+        $disabledStmt = $pdo->query("SELECT lab_id, seat_number, reason FROM disabled_terminals");
+        $disabledRows = $disabledStmt->fetchAll();
+        $disabledMap = [];
+        foreach ($disabledRows as $row) {
+            $disabledMap[(int)$row['lab_id']][] = [
+                'seat_number' => (int)$row['seat_number'],
+                'reason' => $row['reason']
+            ];
+        }
+
         foreach ($labs as &$lab) {
             $lab['software'] = $map[(int)$lab['lab_id']] ?? [];
+            $lab['disabled_terminals'] = $disabledMap[(int)$lab['lab_id']] ?? [];
         }
         unset($lab);
 
@@ -289,6 +301,73 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } catch (PDOException $e) {
             http_response_code(500);
             echo json_encode(['error' => 'Failed to delete laboratory', 'details' => $e->getMessage()]);
+        }
+        exit();
+    }
+
+    // ── Update Laboratory Status ──
+    if ($action === 'update_lab_status') {
+        $labId = (int)($data['lab_id'] ?? 0);
+        $status = $data['status'] ?? 'active';
+
+        if ($labId <= 0 || !in_array($status, ['active', 'maintenance'])) {
+            http_response_code(422);
+            echo json_encode(['error' => 'Valid Lab ID and status are required']);
+            exit();
+        }
+
+        try {
+            $stmt = $pdo->prepare("UPDATE laboratories SET status = ? WHERE lab_id = ?");
+            $stmt->execute([$status, $labId]);
+            echo json_encode(['message' => 'Laboratory status updated']);
+        } catch (PDOException $e) {
+            http_response_code(500);
+            echo json_encode(['error' => 'Failed to update lab status', 'details' => $e->getMessage()]);
+        }
+        exit();
+    }
+
+    // ── Disable Terminal ──
+    if ($action === 'disable_terminal') {
+        $labId = (int)($data['lab_id'] ?? 0);
+        $seatNumber = (int)($data['seat_number'] ?? 0);
+        $reason = trim($data['reason'] ?? 'Maintenance');
+
+        if ($labId <= 0 || $seatNumber <= 0) {
+            http_response_code(422);
+            echo json_encode(['error' => 'Valid Lab ID and Seat Number are required']);
+            exit();
+        }
+
+        try {
+            $stmt = $pdo->prepare("INSERT IGNORE INTO disabled_terminals (lab_id, seat_number, reason) VALUES (?, ?, ?)");
+            $stmt->execute([$labId, $seatNumber, $reason]);
+            echo json_encode(['message' => 'Terminal disabled']);
+        } catch (PDOException $e) {
+            http_response_code(500);
+            echo json_encode(['error' => 'Failed to disable terminal', 'details' => $e->getMessage()]);
+        }
+        exit();
+    }
+
+    // ── Enable Terminal ──
+    if ($action === 'enable_terminal') {
+        $labId = (int)($data['lab_id'] ?? 0);
+        $seatNumber = (int)($data['seat_number'] ?? 0);
+
+        if ($labId <= 0 || $seatNumber <= 0) {
+            http_response_code(422);
+            echo json_encode(['error' => 'Valid Lab ID and Seat Number are required']);
+            exit();
+        }
+
+        try {
+            $stmt = $pdo->prepare("DELETE FROM disabled_terminals WHERE lab_id = ? AND seat_number = ?");
+            $stmt->execute([$labId, $seatNumber]);
+            echo json_encode(['message' => 'Terminal enabled']);
+        } catch (PDOException $e) {
+            http_response_code(500);
+            echo json_encode(['error' => 'Failed to enable terminal', 'details' => $e->getMessage()]);
         }
         exit();
     }
