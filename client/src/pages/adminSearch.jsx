@@ -69,7 +69,7 @@ export default function AdminSearchPage() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-50 text-slate-800 p-4 sm:p-6 md:pl-72">
+    <main className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200 p-4 sm:p-6 md:pl-64">
       <AdminNavigationBar />
 
       <section className="max-w-6xl mx-auto mt-16 md:mt-0 space-y-6">
@@ -81,7 +81,7 @@ export default function AdminSearchPage() {
           </p>
         </div>
 
-        <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-5">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm p-5">
           <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-3">
             <div className="relative">
               <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -108,7 +108,7 @@ export default function AdminSearchPage() {
           {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
         </div>
 
-        <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm overflow-hidden">
           <div className="px-5 py-4 border-b border-slate-200">
             <h2 className="text-lg font-bold text-slate-900">Search Results</h2>
           </div>

@@ -119,7 +119,7 @@ export default function AdminSitInPage() {
       <AdminNavigationBar />
 
       <section className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-12 space-y-6">
-        <header className="px-2">
+        <header className="px-2 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
           <h1 className="text-4xl md:text-5xl font-bold text-[#381872] dark:text-violet-300 tracking-tight">
             Active Sessions.
           </h1>
@@ -129,30 +129,14 @@ export default function AdminSitInPage() {
         </header>
 
         {error && (
-          <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 text-red-700 dark:text-red-400 text-xs font-bold uppercase tracking-tight">
+          <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 text-red-700 dark:text-red-400 text-xs font-bold uppercase tracking-tight animate-fade-in-up">
             <Info size={16} /> {error}
           </div>
         )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl p-4 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
-            <div className="absolute -top-10 -right-10 w-24 h-24 bg-[#a67ffe]/5 rounded-full blur-xl"></div>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Currently Sit-In</p>
-            <h2 className="text-2xl font-bold text-[#381872] dark:text-white mt-1">
-              {currentSessions.length}
-            </h2>
-          </div>
-          <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl p-4 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
-            <div className="absolute -top-10 -right-10 w-24 h-24 bg-emerald-500/5 rounded-full blur-xl"></div>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Status</p>
-            <div className="mt-1 flex items-center gap-2">
-               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-               <h2 className="text-lg font-bold text-slate-900 dark:text-white uppercase tracking-tighter tracking-widest">LIVE</h2>
-            </div>
-          </div>
-        </div>
 
-        <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden">
+
+        <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
           <div className="px-5 py-3 border-b border-slate-50 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/20">
             <h2 className="text-sm font-bold text-[#381872] dark:text-white flex items-center gap-2">
                <Activity className="w-4 h-4 text-violet-500" />
@@ -175,7 +159,8 @@ export default function AdminSitInPage() {
                   <th className="text-left px-5 py-4 font-black tracking-widest">User ID</th>
                   <th className="text-left px-5 py-4 font-black tracking-widest">Full Name</th>
                   <th className="text-left px-5 py-4 font-black tracking-widest">Activity</th>
-                  <th className="text-left px-5 py-4 font-black tracking-widest">Terminal</th>
+                  <th className="text-left px-5 py-4 font-black tracking-widest">Computer</th>
+
                   <th className="text-left px-5 py-4 font-black tracking-widest">PC #</th>
                   <th className="text-left px-5 py-4 font-black tracking-widest">Condition</th>
                   <th className="text-right px-5 py-4 font-black tracking-widest">Operations</th>

@@ -1,8 +1,16 @@
 import { useEffect, useState } from "react";
 import AdminNavigationBar from "../component/adminNavigationBar";
-import { Bell, Users, Monitor, BarChart3, ChevronLeft, ChevronRight, TrendingUp } from "lucide-react";
+import { 
+  Bell, 
+  Users, 
+  Monitor, 
+  BarChart3, 
+  Activity,
+  History,
+  Info
+} from "lucide-react";
 
-import { Pie, Bar, Line } from "react-chartjs-2";
+import { Pie, Bar } from "react-chartjs-2";
 import {
   Chart as ChartJS,
   ArcElement,
@@ -11,9 +19,6 @@ import {
   CategoryScale,
   LinearScale,
   BarElement,
-  LineElement,
-  PointElement,
-  Filler,
 } from "chart.js";
 
 ChartJS.register(
@@ -22,31 +27,21 @@ ChartJS.register(
   Legend,
   CategoryScale,
   LinearScale,
-  BarElement,
-  LineElement,
-  PointElement,
-  Filler,
+  BarElement
 );
 
 export default function AdminDashboard() {
   const user = JSON.parse(localStorage.getItem("user") || "null");
 
   const [stats, setStats] = useState({
-
     registeredStudents: 0,
     currentSitIns: 0,
     totalSitIns: 0,
     announcementCount: 0,
     purposes: [],
-    leaderboard: [],
+    labUsage: [],
   });
   const [statsLoading, setStatsLoading] = useState(false);
-
-  // ── Weekly Analytics State ──
-  const [weekStart, setWeekStart] = useState("");
-  const [weekEnd, setWeekEnd] = useState("");
-  const [weeklyData, setWeeklyData] = useState([]);
-  const [weeklyLoading, setWeeklyLoading] = useState(false);
 
   const fetchStats = async () => {
     setStatsLoading(true);
@@ -55,53 +50,20 @@ export default function AdminDashboard() {
         `${import.meta.env.VITE_API_BASE_URL}/adminDashboardStats.php`,
       );
       const json = await res.json();
-
-      if (!res.ok) {
-        return;
-      }
-
-      if (json.stats) {
-        setStats(json.stats);
-      }
+      if (res.ok && json.stats) setStats(json.stats);
     } catch {
-      // keep default values when server is unavailable
+      // keep defaults
     } finally {
       setStatsLoading(false);
     }
   };
 
-  const fetchWeeklyAnalytics = async (ws) => {
-    setWeeklyLoading(true);
-    try {
-      const params = ws ? `?week_start=${ws}` : "";
-      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/analytics.php${params}`);
-      const json = await res.json();
-      if (res.ok) {
-        setWeekStart(json.week_start || "");
-        setWeekEnd(json.week_end || "");
-        setWeeklyData(json.data || []);
-      }
-    } catch {} finally { setWeeklyLoading(false); }
-  };
-
-  const navigateWeek = (dir) => {
-    if (!weekStart) return;
-    const d = new Date(weekStart + "T00:00:00");
-    d.setDate(d.getDate() + (dir === "prev" ? -7 : 7));
-    const iso = d.toISOString().slice(0, 10);
-    fetchWeeklyAnalytics(iso);
-  };
-
   useEffect(() => {
     fetchStats();
-    fetchWeeklyAnalytics();
   }, []);
 
   const hasPurposeData = stats.purposes.length > 0;
-  const leaderboardRows = Array.isArray(stats.leaderboard)
-    ? stats.leaderboard
-    : [];
-  const hasLeaderboardData = leaderboardRows.length > 0;
+  const hasLabData = stats.labUsage.length > 0;
 
   const pieData = {
     labels: hasPurposeData ? stats.purposes.map((p) => p.label) : ["No data"],
@@ -111,9 +73,9 @@ export default function AdminDashboard() {
         backgroundColor: hasPurposeData
           ? stats.purposes.map((p) => p.color)
           : ["#CBD5E1"],
-        borderColor: "#ffffff",
-        borderWidth: 3,
-        hoverOffset: 8,
+        borderColor: "transparent",
+        borderWidth: 0,
+        hoverOffset: 12,
       },
     ],
   };
@@ -122,334 +84,214 @@ export default function AdminDashboard() {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: {
-        display: false,
-      },
+      legend: { display: false },
       tooltip: {
+        backgroundColor: "rgba(15,23,42,0.9)",
+        padding: 12,
+        cornerRadius: 12,
+        titleFont: { size: 14, weight: 'bold' },
         callbacks: {
           label: (context) => {
-            if (!hasPurposeData) return "No sit-in records yet";
+            if (!hasPurposeData) return "No records yet";
             const entry = stats.purposes[context.dataIndex];
             return `${entry.label}: ${entry.count} (${entry.percent}%)`;
           },
         },
       },
     },
+    cutout: '70%',
   };
 
-  const topFive = hasLeaderboardData ? leaderboardRows.slice(0, 5) : [];
-  const reorderedTop5 =
-    topFive.length >= 5
-      ? [
-          topFive[2], // 3rd place
-          topFive[1], // 2nd place
-          topFive[0], // 1st place (middle center)
-          topFive[3], // 4th place
-          topFive[4], // 5th place
-        ]
-      : topFive;
-
-  const leaderboardData = {
-    labels: hasLeaderboardData
-      ? reorderedTop5.map((item) => item.full_name || item.id_number)
-      : ["No data"],
+  const barData = {
+    labels: hasLabData ? stats.labUsage.map(l => l.label) : ["No data"],
     datasets: [
       {
-        label: "Used Sessions",
-        data: hasLeaderboardData
-          ? reorderedTop5.map((item) => Number(item.used_session) || 0)
-          : [0],
-        backgroundColor: hasLeaderboardData
-          ? reorderedTop5.map((_, idx) =>
-              idx === 2
-                ? "#FCD34D"
-                : idx === 1
-                  ? "#A78BFA"
-                  : idx === 0
-                    ? "#C4B5FD"
-                    : idx === 3
-                      ? "#7C3AED"
-                      : "#8B5CF6",
-            )
-          : ["#CBD5E1"],
+        label: "Total Sessions",
+        data: hasLabData ? stats.labUsage.map(l => l.count) : [0],
+        backgroundColor: "#6b3fd0",
         borderRadius: 8,
-        borderSkipped: false,
-      },
-    ],
+        barThickness: 20,
+      }
+    ]
   };
 
-  const leaderboardOptions = {
+  const barOptions = {
     responsive: true,
     maintainAspectRatio: false,
-    indexAxis: "x",
     plugins: {
-      legend: {
-        display: false,
-      },
+      legend: { display: false },
       tooltip: {
-        backgroundColor: "rgba(15, 23, 42, 0.9)",
-        padding: 10,
-        titleFont: { size: 12, weight: "bold" },
-        bodyFont: { size: 11 },
-        cornerRadius: 8,
-        callbacks: {
-          title: (context) => {
-            const idx = context[0].dataIndex;
-            return (
-              reorderedTop5[idx]?.full_name ||
-              reorderedTop5[idx]?.id_number ||
-              ""
-            );
-          },
-          label: (context) => `Sessions: ${context.parsed.y ?? 0}`,
-        },
-      },
+        backgroundColor: "rgba(15,23,42,0.9)",
+        padding: 12,
+        cornerRadius: 12,
+      }
     },
     scales: {
-      x: {
-        ticks: {
-          display: false,
-        },
-        grid: {
-          display: false,
-        },
-      },
       y: {
-        ticks: {
-          precision: 0,
-        },
-        grid: {
-          color: "rgba(203, 213, 225, 0.2)",
-        },
+        beginAtZero: true,
+        grid: { color: "rgba(0,0,0,0.05)" },
+        ticks: { font: { size: 10, weight: 'bold' }, color: "#64748b" }
       },
-    },
+      x: {
+        grid: { display: false },
+        ticks: { font: { size: 10, weight: 'bold' }, color: "#64748b" }
+      }
+    }
   };
 
   return (
-    <main className="min-h-screen bg-slate-50 text-slate-800 p-4 sm:p-6 md:pl-72">
+    <main className="min-h-screen bg-[#fef7ff] dark:bg-slate-950 text-slate-800 dark:text-slate-200 font-['Montserrat'] md:pl-64 transition-colors duration-300">
       <AdminNavigationBar />
-      <div className="max-w-7xl mx-auto mt-20 md:mt-0 space-y-5">
-        <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-          <div className="bg-white border border-purple-100 rounded-xl p-4 shadow-sm">
-            <div className="flex items-center justify-between">
-              <p className="text-xs uppercase tracking-wide text-slate-500">
-                Registered Students
-              </p>
-              <Users className="w-4 h-4 text-purple-600" />
-            </div>
-            <p className="text-2xl font-bold text-slate-900 mt-2">
-              {stats.registeredStudents}
-            </p>
-            <p className="text-xs text-slate-500 mt-1">
-              {statsLoading ? "Syncing data..." : "Live database count"}
-            </p>
+      
+      <style>{`
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-up {
+          animation: fadeInUp 0.6s ease-out forwards;
+          opacity: 0;
+        }
+      `}</style>
+
+      <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-12 space-y-10">
+        {/* Header Section */}
+        <header className="px-2 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+          <h1 className="text-4xl md:text-5xl font-bold text-[#381872] dark:text-violet-300 tracking-tight">
+            Dashboard
+          </h1>
+        </header>
+
+        {/* Bento Stats Row (Minimized) */}
+        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Card 1: Registered Students */}
+          <div className="animate-fade-in-up bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-100 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:shadow-md transition-all" style={{ animationDelay: '0.2s' }}>
+             <div className="absolute -top-10 -right-10 w-24 h-24 bg-[#a67ffe]/5 rounded-full blur-xl group-hover:bg-[#a67ffe]/10 transition-colors"></div>
+             <div className="relative z-10">
+                <div className="w-10 h-10 rounded-xl bg-violet-50 dark:bg-violet-900/30 flex items-center justify-center text-[#381872] dark:text-violet-300 mb-3 group-hover:scale-110 transition-transform">
+                   <Users size={20} />
+                </div>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Registered Students</p>
+                <h2 className="text-2xl font-bold text-[#381872] dark:text-white">
+                  {statsLoading ? "..." : stats.registeredStudents}
+                </h2>
+                <div className="mt-2 flex items-center gap-1.5 text-[9px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-tight">
+                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                   Live Database
+                </div>
+             </div>
           </div>
 
-          <div className="bg-white border border-purple-100 rounded-xl p-4 shadow-sm">
-            <div className="flex items-center justify-between">
-              <p className="text-xs uppercase tracking-wide text-slate-500">
-                Current Sit-Ins
-              </p>
-              <Monitor className="w-4 h-4 text-purple-600" />
-            </div>
-            <p className="text-2xl font-bold text-slate-900 mt-2">
-              {stats.currentSitIns}
-            </p>
-            <p className="text-xs text-slate-500 mt-1">Live active sessions</p>
+          {/* Card 2: Current Sit-Ins */}
+          <div className="animate-fade-in-up bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-100 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:shadow-md transition-all" style={{ animationDelay: '0.3s' }}>
+             <div className="absolute -top-10 -right-10 w-24 h-24 bg-[#f4be5d]/5 rounded-full blur-xl"></div>
+             <div className="relative z-10">
+                <div className="w-10 h-10 rounded-xl bg-[#f4be5d]/20 flex items-center justify-center text-[#5f4100] dark:text-[#f4be5d] mb-3 group-hover:scale-110 transition-transform">
+                   <Monitor size={20} />
+                </div>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">In Session Now</p>
+                <h2 className="text-2xl font-bold text-[#381872] dark:text-white">
+                  {statsLoading ? "..." : stats.currentSitIns}
+                </h2>
+                <div className="mt-2 flex items-center gap-1.5 text-[9px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-tight">
+                   <Activity size={10} />
+                   Active Computers
+                </div>
+             </div>
           </div>
 
-          <div className="bg-white border border-purple-100 rounded-xl p-4 shadow-sm">
-            <div className="flex items-center justify-between">
-              <p className="text-xs uppercase tracking-wide text-slate-500">
-                Total Sit-Ins
-              </p>
-              <div className="w-7 h-7 rounded-lg bg-amber-50 border border-amber-200 flex items-center justify-center">
-                <BarChart3 className="w-4 h-4 text-amber-700" />
-              </div>
-            </div>
-            <p className="text-2xl font-bold text-slate-900 mt-2">
-              {stats.totalSitIns}
-            </p>
-            <p className="text-xs text-amber-700 mt-1">
-              Total recorded sit-ins
-            </p>
+          {/* Card 3: Lifetime Records */}
+          <div className="animate-fade-in-up bg-[#381872] dark:bg-violet-950 rounded-2xl p-4 text-white relative overflow-hidden group hover:shadow-lg transition-all" style={{ animationDelay: '0.4s' }}>
+             <div className="absolute inset-0 opacity-5" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)', backgroundSize: '20px 20px' }}></div>
+             <div className="relative z-10">
+                <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center text-[#f4be5d] mb-3 group-hover:scale-110 transition-transform">
+                   <History size={20} />
+                </div>
+                <p className="text-[10px] font-bold text-violet-300 uppercase tracking-widest mb-0.5">Total Sit-Ins</p>
+                <h2 className="text-2xl font-bold tracking-tight">
+                  {statsLoading ? "..." : stats.totalSitIns}
+                </h2>
+                <div className="mt-2 text-[9px] font-bold text-violet-200 uppercase tracking-widest flex items-center gap-1.5">
+                   <BarChart3 size={10} /> System Lifetime
+                </div>
+             </div>
           </div>
 
-          <div className="bg-white border border-purple-100 rounded-xl p-4 shadow-sm">
-            <div className="flex items-center justify-between">
-              <p className="text-xs uppercase tracking-wide text-slate-500">
-                Announcements
-              </p>
-              <Bell className="w-4 h-4 text-purple-600" />
-            </div>
-            <p className="text-2xl font-bold text-slate-900 mt-2">
-              {stats.announcementCount}
-            </p>
-            <p className="text-xs text-slate-500 mt-1">Total posted updates</p>
+          {/* Card 4: Announcements */}
+          <div className="animate-fade-in-up bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-100 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:shadow-md transition-all" style={{ animationDelay: '0.5s' }}>
+             <div className="absolute -top-10 -right-10 w-24 h-24 bg-violet-500/5 rounded-full blur-xl"></div>
+             <div className="relative z-10">
+                <div className="w-10 h-10 rounded-xl bg-violet-50 dark:bg-violet-900/30 flex items-center justify-center text-[#381872] dark:text-violet-300 mb-3 group-hover:scale-110 transition-transform">
+                   <Bell size={20} />
+                </div>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Updates Posted</p>
+                <h2 className="text-2xl font-bold text-[#381872] dark:text-white">
+                  {statsLoading ? "..." : stats.announcementCount}
+                </h2>
+                <div className="mt-2 text-[9px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                   <Info size={10} /> Official News
+                </div>
+             </div>
           </div>
         </section>
 
-        <section className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <div className="lg:col-span-5 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="px-5 py-4 border-b border-slate-200 flex items-center gap-2">
-              <BarChart3 className="w-5 h-5 text-purple-600" />
-              <h2 className="text-lg font-bold text-slate-900">
-                Student Sit-In Leaderboard
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
+          {/* Purpose Distribution */}
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col h-full transition-colors">
+            <div className="px-6 py-4 border-b border-slate-50 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/20">
+              <h2 className="text-xs font-black uppercase tracking-widest text-[#381872] dark:text-white flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-violet-500"></span>
+                Purpose Distribution
               </h2>
             </div>
-
-            <div className="p-5 space-y-4">
-              <p className="text-sm text-slate-600">
-                Top students ranked by total used sit-in sessions.
-              </p>
-
-              <div className="space-y-3">
-                {hasLeaderboardData && (
-                  <div className="flex justify-between items-end gap-2 px-2 h-8">
-                    {reorderedTop5.map((item, idx) => (
-                      <div
-                        key={item.id_number}
-                        className="flex-1 flex flex-col items-center justify-end"
-                      >
-                        <p className="text-xs font-bold text-slate-700 text-center line-clamp-2 leading-tight">
-                          {item.full_name || item.id_number}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                <div className="h-96">
-                  <Bar data={leaderboardData} options={leaderboardOptions} />
+            
+            <div className="p-6 flex flex-col items-center gap-8 flex-1">
+              <div className="h-56 w-full relative">
+                <Pie data={pieData} options={pieOptions} />
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                   <p className="text-xl font-black text-[#381872] dark:text-white">
+                      {stats.purposes.reduce((acc, curr) => acc + curr.count, 0)}
+                   </p>
+                   <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Total</p>
                 </div>
               </div>
 
-              {statsLoading && (
-                <p className="text-xs text-slate-500">
-                  Refreshing leaderboard...
-                </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
+                {hasPurposeData ? (
+                  stats.purposes.slice(0, 4).map((purpose) => (
+                    <div key={purpose.label} className="flex items-center justify-between rounded-2xl bg-slate-50 dark:bg-slate-950 p-3 border border-slate-100 dark:border-slate-800">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: purpose.color }} />
+                        <span className="text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase truncate">{purpose.label}</span>
+                      </div>
+                      <span className="text-xs font-black text-[#381872] dark:text-white">{purpose.count}</span>
+                    </div>
+                  ))
+                ) : null}
+              </div>
+            </div>
+          </div>
+
+          {/* Lab Usage Chart */}
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col h-full transition-colors">
+            <div className="px-6 py-4 border-b border-slate-50 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/20">
+              <h2 className="text-xs font-black uppercase tracking-widest text-[#381872] dark:text-white flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                Lab Occupancy Stats
+              </h2>
+            </div>
+            
+            <div className="p-6 flex-1">
+              {hasLabData ? (
+                <div className="h-[300px] w-full">
+                  <Bar data={barData} options={barOptions} />
+                </div>
+              ) : (
+                <div className="h-full flex flex-col items-center justify-center text-slate-400 py-12">
+                   <Monitor size={32} className="mb-3 opacity-20" />
+                   <p className="text-xs font-bold uppercase tracking-widest">No lab data yet</p>
+                </div>
               )}
-            </div>
-          </div>
-          <div className="lg:col-span-7 space-y-6">
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="px-5 py-4 border-b border-slate-200 flex items-center gap-2">
-                <BarChart3 className="w-5 h-5 text-purple-600" />
-                <h2 className="text-lg font-bold text-slate-900">
-                  Purpose Distribution
-                </h2>
-              </div>
-
-              <div className="p-5 grid grid-cols-1 xl:grid-cols-5 gap-4 items-center">
-                <div className="xl:col-span-3 h-72">
-                  <Pie data={pieData} options={pieOptions} />
-                </div>
-
-                <div className="xl:col-span-2 space-y-2">
-                  {hasPurposeData ? (
-                    stats.purposes.map((purpose) => (
-                      <div
-                        key={purpose.label}
-                        className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2"
-                      >
-                        <div className="flex items-center gap-2">
-                          <span
-                            className="w-3 h-3 rounded-full"
-                            style={{ backgroundColor: purpose.color }}
-                          />
-                          <span className="text-sm font-medium text-slate-700">
-                            {purpose.label}
-                          </span>
-                        </div>
-                        <span className="text-sm font-bold text-slate-900">
-                          ({purpose.percent}%)
-                        </span>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-sm text-slate-500">
-                      No sit-in purpose data yet.
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ── Weekly Sit-In Trends (Feature 4) ── */}
-        <section className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
-            <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-purple-600" />
-              Weekly Sit-In Trends
-            </h2>
-            <div className="flex items-center gap-2">
-              <button onClick={() => navigateWeek("prev")} className="p-1.5 rounded-lg border border-slate-300 hover:bg-slate-100">
-                <ChevronLeft className="w-4 h-4 text-slate-600" />
-              </button>
-              <span className="text-sm text-slate-600 font-medium min-w-[180px] text-center">
-                {weekStart && weekEnd ? `${weekStart} — ${weekEnd}` : "Loading..."}
-              </span>
-              <button onClick={() => navigateWeek("next")} className="p-1.5 rounded-lg border border-slate-300 hover:bg-slate-100">
-                <ChevronRight className="w-4 h-4 text-slate-600" />
-              </button>
-            </div>
-          </div>
-          <div className="p-5">
-            {weeklyLoading ? (
-              <div className="h-72 flex items-center justify-center">
-                <div className="w-7 h-7 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin" />
-              </div>
-            ) : (
-              <div className="h-72">
-                <Line
-                  data={{
-                    labels: weeklyData.map(d => d.day.slice(0, 3)),
-                    datasets: [{
-                      label: "Sessions",
-                      data: weeklyData.map(d => d.session_count),
-                      borderColor: "#5428a8",
-                      backgroundColor: "rgba(84, 40, 168, 0.1)",
-                      fill: true,
-                      tension: 0.4,
-                      pointBackgroundColor: "#5428a8",
-                      pointBorderColor: "#fff",
-                      pointBorderWidth: 2,
-                      pointRadius: 5,
-                      pointHoverRadius: 7,
-                    }],
-                  }}
-                  options={{
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                      legend: { display: false },
-                      tooltip: {
-                        backgroundColor: "rgba(15,23,42,0.9)",
-                        padding: 10,
-                        cornerRadius: 8,
-                        callbacks: {
-                          title: (ctx) => weeklyData[ctx[0].dataIndex]?.day || "",
-                          label: (ctx) => `${ctx.parsed.y} session${ctx.parsed.y !== 1 ? "s" : ""}`,
-                          afterLabel: (ctx) => weeklyData[ctx.dataIndex]?.date || "",
-                        },
-                      },
-                    },
-                    scales: {
-                      y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: "rgba(203,213,225,0.3)" } },
-                      x: { grid: { display: false } },
-                    },
-                  }}
-                />
-              </div>
-            )}
-            <div className="mt-3 grid grid-cols-7 gap-2">
-              {weeklyData.map(d => (
-                <div key={d.date} className="text-center">
-                  <p className="text-xs text-slate-500">{d.day.slice(0, 3)}</p>
-                  <p className="text-lg font-bold text-slate-900">{d.session_count}</p>
-                </div>
-              ))}
             </div>
           </div>
         </section>
