@@ -7,6 +7,7 @@ import {
   useNavigate,
 } from "react-router-dom";
 import "./App.css";
+import ChatbotWidget from "./component/ChatbotWidget";
 import LandingPage from "./pages/landingPage";
 import LoginPage from "./pages/loginPage";
 import RegisterPage from "./pages/register";
@@ -18,13 +19,12 @@ import AdminDashboard from "./pages/adminDashboard";
 import AdminStudentsPage from "./pages/adminStudents";
 import AdminSitInPage from "./pages/adminSitIn";
 import AdminSitInRecordsPage from "./pages/adminSitInRecords";
-import AdminSitInReportsPage from "./pages/adminSitInReports";
 import AdminAnnouncementsPage from "./pages/adminAnnouncements";
 import AdminReservationsPage from "./pages/adminReservations";
 import StudentFeedbackPage from "./pages/studentFeedback";
 import AdminLabsSoftwarePage from "./pages/adminLabsSoftware";
 import AdminTestimonialsPage from "./pages/adminTestimonials";
-import AdminReportsPage from "./pages/adminReports";
+import AdminAnalyticsPage from "./pages/adminAnalytics";
 
 function StudentProtectedRoute({ children }) {
   const token = localStorage.getItem("authToken");
@@ -79,6 +79,31 @@ function App() {
       const user = JSON.parse(localStorage.getItem("user") || "null");
       const path = window.location.pathname;
 
+      // --- JWT Expiry Check ---
+      if (token) {
+        try {
+          const payloadBase64 = token.split(".")[1];
+          if (payloadBase64) {
+            const payload = JSON.parse(atob(payloadBase64));
+            const currentTime = Math.floor(Date.now() / 1000);
+            if (payload.exp && payload.exp < currentTime) {
+              console.warn("Session expired. Logging out...");
+              localStorage.removeItem("authToken");
+              localStorage.removeItem("user");
+              localStorage.removeItem("token"); // Cleanup any legacy keys
+              navigate("/login", { replace: true });
+              return;
+            }
+          }
+        } catch (err) {
+          console.error("Token validation error:", err);
+          localStorage.removeItem("authToken");
+          localStorage.removeItem("user");
+          navigate("/login", { replace: true });
+          return;
+        }
+      }
+
       const isAdminPath = path.startsWith("/admin");
       const isStudentPath = path.startsWith("/dashboard");
 
@@ -93,18 +118,26 @@ function App() {
     };
 
     enforceAuth();
+    
+    // Check every 60 seconds for background expiry
+    const expiryInterval = setInterval(enforceAuth, 60000);
+
     window.addEventListener("popstate", enforceAuth);
     window.addEventListener("pageshow", enforceAuth);
 
     return () => {
+      clearInterval(expiryInterval);
       window.removeEventListener("popstate", enforceAuth);
       window.removeEventListener("pageshow", enforceAuth);
     };
   }, [navigate, location.pathname]);
 
+  const token = localStorage.getItem("authToken");
+
   return (
-    <Routes>
-      <Route path="/" element={<LandingPage />} />
+    <>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
       <Route
         path="/login"
         element={
@@ -187,14 +220,6 @@ function App() {
         }
       />
       <Route
-        path="/admin/sit-in/reports"
-        element={
-          <AdminProtectedRoute>
-            <AdminSitInReportsPage />
-          </AdminProtectedRoute>
-        }
-      />
-      <Route
         path="/admin/announcements"
         element={
           <AdminProtectedRoute>
@@ -235,15 +260,18 @@ function App() {
         }
       />
       <Route
-        path="/admin/reports"
+        path="/admin/analytics"
         element={
           <AdminProtectedRoute>
-            <AdminReportsPage />
+            <AdminAnalyticsPage />
           </AdminProtectedRoute>
         }
       />
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+      {/* Chatbot widget — visible to all logged-in users */}
+      {token && <ChatbotWidget />}
+    </>
   );
 }
 
