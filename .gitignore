@@ -1,2 +1,3 @@
-/APP_STRUCTURE.md
-/SYSTEM_DESIGN.md
+*.md
+/node_modules
+/build
