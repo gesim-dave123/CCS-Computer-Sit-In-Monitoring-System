@@ -92,7 +92,7 @@ export default function StudentHistoryPage() {
              <div className="p-8 space-y-6">
                 <div className="grid grid-cols-2 gap-6">
                    <div><p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Date</p><p className="text-sm font-bold">{new Date(selectedSession.started_at).toLocaleDateString()}</p></div>
-                   <div><p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Status</p><span className={`inline-flex px-2 py-0.5 rounded-lg text-[8px] font-black uppercase ${selectedSession.status === 'ended' ? 'bg-slate-100 text-slate-400' : 'bg-emerald-50 text-emerald-600'}`}>{selectedSession.status}</span></div>
+                   <div><p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Status</p><span className={`inline-flex px-2 py-0.5 rounded-lg text-[8px] font-black uppercase ${selectedSession.status === 'ended' ? 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400' : 'bg-emerald-100 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300'}`}>{selectedSession.status}</span></div>
                    <div><p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Time In</p><p className="text-sm font-bold flex items-center gap-2"><Clock size={14} className="text-violet-400" /> {new Date(selectedSession.started_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p></div>
                    <div><p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Time Out</p><p className="text-sm font-bold flex items-center gap-2"><Clock size={14} className="text-violet-400" /> {selectedSession.ended_at ? new Date(selectedSession.ended_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "---"}</p></div>
                    <div><p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Duration</p><p className="text-sm font-bold flex items-center gap-2"><Timer size={14} className="text-violet-400" /> {calculateDuration(selectedSession.started_at, selectedSession.ended_at)}</p></div>
@@ -131,12 +131,12 @@ export default function StudentHistoryPage() {
       )}
 
       <section className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-12 space-y-6">
-        <header className="px-2">
+        <header className="px-2 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
           <h1 className="text-2xl md:text-3xl font-bold text-[#381872] dark:text-violet-300 tracking-tight">Sit-In Logs.</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium">Activity and performance history.</p>
         </header>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
            {[
              { label: "Sessions", val: stats.total, icon: History, color: "text-[#381872] dark:text-violet-300", bg: "bg-violet-50 dark:bg-violet-900/30" },
              { label: "Duration", val: formatDuration(stats.totalM), icon: Timer, color: "text-emerald-600", bg: "bg-emerald-50 dark:bg-emerald-900/20" },
@@ -150,7 +150,7 @@ export default function StudentHistoryPage() {
            ))}
         </div>
 
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
           <div className="px-6 py-4 border-b border-slate-50 dark:border-slate-800 flex items-center justify-between bg-slate-50/30 dark:bg-slate-800/20">
              <h3 className="text-sm font-bold flex items-center gap-2"><FileText size={16} className="text-violet-500" />Detailed Activity</h3>
           </div>
@@ -173,7 +173,7 @@ export default function StudentHistoryPage() {
                            <td className="px-6 py-3 font-bold">{r.purpose || "Study"}</td>
                            <td className="px-6 py-3 text-slate-500">{r.lab}</td>
                            <td className="px-6 py-3">
-                              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[8px] font-black uppercase ${r.status === 'ended' ? 'bg-slate-100 text-slate-400' : 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600'}`}>{r.status}</span>
+                              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[8px] font-black uppercase ${r.status === 'ended' ? 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400' : 'bg-emerald-100 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300'}`}>{r.status}</span>
                            </td>
                            <td className="px-6 py-3 text-right">
                               {r.feedback ? <button onClick={(e) => { e.stopPropagation(); setSelectedHistoryFeedback(r); }} className="p-2 rounded-lg bg-violet-50 dark:bg-violet-900/30 text-[#381872] dark:text-violet-300"><MessageSquare size={14} /></button> : <span className="text-[8px] font-black text-slate-300 uppercase">No Feedback</span>}

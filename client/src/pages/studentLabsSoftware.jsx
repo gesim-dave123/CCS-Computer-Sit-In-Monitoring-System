@@ -1,139 +1,71 @@
 import { useEffect, useState } from "react";
 import NavigationBar from "../component/studentNavBar";
-import { Search, Monitor, Code, Database, Palette, FileText, Globe, Cpu, Filter } from "lucide-react";
-
-const CATEGORY_ICONS = {
-  IDE: Code,
-  Office: FileText,
-  Database: Database,
-  Design: Palette,
-  Browser: Globe,
-  default: Cpu,
-};
-
-function getCategoryIcon(cat) {
-  if (!cat) return CATEGORY_ICONS.default;
-  for (const [key, Icon] of Object.entries(CATEGORY_ICONS)) {
-    if (key !== "default" && cat.toLowerCase().includes(key.toLowerCase())) return Icon;
-  }
-  return CATEGORY_ICONS.default;
-}
+import ccslogo from "../assets/image/ccslogo.png";
+import { Cpu, Search, Monitor, MapPin, Building2, ChevronRight, Info } from "lucide-react";
 
 export default function StudentLabsSoftwarePage() {
   const [labs, setLabs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("all");
 
   useEffect(() => {
-    const fetchLabs = async () => {
-      setLoading(true);
-      try {
-        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/labsSoftware.php`);
-        const json = await res.json();
-        if (res.ok) setLabs(json.labs || []);
-      } catch {
-        // silent
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchLabs();
+    fetch(`${import.meta.env.VITE_API_BASE_URL}/labsSoftware.php`)
+      .then(r => r.json())
+      .then(d => setLabs(d.labs || []))
+      .finally(() => setLoading(false));
   }, []);
 
-  // Collect all unique categories
-  const allCategories = [...new Set(labs.flatMap(l => (l.software || []).map(s => s.category)).filter(Boolean))];
-
-  // Filter labs: show only labs that have at least one matching software
-  const filteredLabs = labs.map(lab => {
-    const sw = (lab.software || []).filter(s => {
-      const matchSearch = search === "" || s.software_name.toLowerCase().includes(search.toLowerCase()) || (s.category || "").toLowerCase().includes(search.toLowerCase());
-      const matchCat = categoryFilter === "all" || s.category === categoryFilter;
-      return matchSearch && matchCat;
-    });
-    return { ...lab, software: sw };
-  }).filter(lab => search === "" && categoryFilter === "all" ? true : lab.software.length > 0);
+  const filtered = labs.filter(l => l.lab_name.toLowerCase().includes(search.toLowerCase()) || (l.software || []).some(s => s.software_name.toLowerCase().includes(search.toLowerCase())));
 
   return (
-    <main className="min-h-screen bg-slate-50">
+    <main className="min-h-screen bg-[#fef7ff] dark:bg-slate-950 font-['Montserrat'] transition-colors duration-300">
       <NavigationBar />
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-10 space-y-6">
-        {/* Header */}
-        <div className="rounded-2xl bg-gradient-to-r from-purple-800 to-purple-700 text-white p-6 sm:p-8 shadow-lg">
-          <div className="flex items-center gap-2 text-purple-200 text-sm mb-1">
-            <Monitor className="w-4 h-4" /> Labs & Software
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-bold">Laboratory Software Availability</h1>
-          <p className="text-purple-100 mt-2 text-sm sm:text-base">Browse the software installed in each computer laboratory to find the tools you need.</p>
-        </div>
+      <section className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-12 space-y-6">
+        <header className="px-2 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+          <h1 className="text-2xl md:text-3xl font-bold text-[#381872] dark:text-violet-300 tracking-tight">Available Tech.</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium">Browse laboratory facilities and software suites.</p>
+        </header>
 
-        {/* Search & Filter */}
-        <div className="flex flex-col sm:flex-row gap-3">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Search software by name or category..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-300"
-            />
-          </div>
-          <div className="relative">
-            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <select
-              value={categoryFilter}
-              onChange={e => setCategoryFilter(e.target.value)}
-              className="pl-10 pr-8 py-2.5 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-300 appearance-none"
-            >
-              <option value="all">All Categories</option>
-              {allCategories.map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
+        <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl shadow-sm p-5 relative overflow-hidden group animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+          <div className="relative z-10">
+            <div className="relative max-w-md">
+              <Search className="w-3.5 h-3.5 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search labs or software..." className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-purple-300" />
+            </div>
           </div>
         </div>
 
-        {/* Labs Grid */}
-        {loading ? (
-          <div className="text-center py-16">
-            <div className="w-8 h-8 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin mx-auto mb-3" />
-            <p className="text-sm text-slate-500">Loading laboratories...</p>
-          </div>
-        ) : filteredLabs.length === 0 ? (
-          <div className="text-center py-16">
-            <Monitor className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-            <p className="text-slate-500">No laboratories match your search.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-            {filteredLabs.map(lab => (
-              <div key={lab.lab_id} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-                <div className="px-5 py-4 border-b border-slate-100 bg-gradient-to-r from-purple-50 to-white">
-                  <h3 className="text-lg font-bold text-slate-900">{lab.lab_name}</h3>
-                  {lab.room_number && <p className="text-xs text-slate-500 mt-0.5">Room {lab.room_number}</p>}
-                  {lab.description && <p className="text-sm text-slate-600 mt-1">{lab.description}</p>}
-                </div>
-                <div className="p-4">
-                  {lab.software.length === 0 ? (
-                    <p className="text-sm text-slate-400 italic">No software assigned yet.</p>
-                  ) : (
-                    <div className="flex flex-wrap gap-2">
-                      {lab.software.map(sw => {
-                        const Icon = getCategoryIcon(sw.category);
-                        return (
-                          <span key={sw.software_id} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-50 border border-purple-100 text-sm text-purple-800 font-medium">
-                            <Icon className="w-3.5 h-3.5" />
-                            {sw.software_name}
-                          </span>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
+          {loading ? Array.from({ length: 4 }).map((_, i) => <div key={i} className="animate-pulse bg-white dark:bg-slate-900 rounded-2xl h-48 border border-slate-100 dark:border-slate-800" />) : filtered.length === 0 ? <p className="col-span-full py-20 text-center text-[10px] font-bold text-slate-300 uppercase tracking-widest">No matching facilities</p> : filtered.map(lab => (
+            <div key={lab.lab_id} className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-5 rounded-2xl shadow-sm hover:shadow-lg transition-all group overflow-hidden relative">
+               <div className="absolute top-0 right-0 w-16 h-16 bg-[#a67ffe]/5 rounded-bl-full group-hover:bg-[#a67ffe]/10 transition-colors" />
+               <div className="w-10 h-10 rounded-xl bg-violet-50 dark:bg-violet-900/30 flex items-center justify-center text-[#381872] dark:text-violet-300 mb-4"><Monitor size={20} /></div>
+               <h3 className="text-base font-bold dark:text-white mb-2">{lab.lab_name}</h3>
+               <div className="space-y-1.5 mb-5">
+                  <p className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-2"><MapPin size={12} className="text-violet-400" />{lab.room_number || "Room ---"}</p>
+                  <p className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-2"><Building2 size={12} className="text-violet-400" />{lab.building || "CCS Complex"}</p>
+               </div>
+               <div className="pt-4 border-t border-slate-50 dark:border-slate-800">
+                  <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-3">Software Suite</p>
+                  <div className="flex flex-wrap gap-1">
+                     {(lab.software || []).slice(0, 5).map(s => <span key={s.software_id} className="text-[8px] font-black px-2 py-0.5 rounded-md bg-slate-50 dark:bg-slate-950 text-slate-400 border border-slate-100 dark:border-slate-800 uppercase">{s.software_name}</span>)}
+                     {lab.software?.length > 5 && <span className="text-[8px] font-black px-2 py-0.5 rounded-md bg-violet-50 dark:bg-violet-900/30 text-violet-400 uppercase">+{lab.software.length - 5}</span>}
+                  </div>
+               </div>
+            </div>
+          ))}
+        </div>
       </section>
+
+      <footer className="bg-white dark:bg-slate-950 w-full py-10 px-8 border-t border-slate-100 dark:border-slate-800 mt-10 transition-all">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-8 max-w-full mx-auto w-full">
+          <div className="flex items-center gap-3"><img src={ccslogo} alt="CCS" className="w-6 h-6 opacity-80" /><div className="font-bold text-[#381872] dark:text-violet-300 text-sm tracking-tighter uppercase">CCS SITIN</div></div>
+          <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">© {new Date().getFullYear()} COLLEGE OF COMPUTER STUDIES.</div>
+          <div className="flex gap-8 text-[9px] font-black uppercase tracking-widest">
+            {["Privacy", "Terms", "Support"].map((l) => (<a key={l} href="#" className="text-slate-400 hover:text-[#f4be5d] transition-colors">{l}</a>))}
+          </div>
+        </div>
+      </footer>
     </main>
   );
 }
